@@ -24,7 +24,8 @@ def request(parameter: str):
     return response.json()
 
 
-for species in birds_list['Latin name'][162:163]:
+j = 0
+for species in birds_list['Latin name']:
     try:
         key = f'https://xeno-canto.org/api/2/recordings?query={species}'
         json_response = request(key)
@@ -35,7 +36,6 @@ for species in birds_list['Latin name'][162:163]:
         num_pages = json_response['numPages']
 
         # iterate over pages
-        j = 0
         for i in range(1, num_pages + 1):
             key = f'https://xeno-canto.org/api/2/recordings?query={species}&page={i}'
             json_response = request(key)
@@ -51,5 +51,5 @@ for species in birds_list['Latin name'][162:163]:
     except Exception as err:
         print(f'Other error occurred: {err}')
 
-df.fillna(np.nan, inplace=True)
-df.to_csv("data/to_test.csv")
+df.fillna(np.NaN, inplace=True)
+df.to_csv("data/xeno_canto_recordings.csv")
