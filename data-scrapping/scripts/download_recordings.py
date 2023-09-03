@@ -3,7 +3,7 @@ import numpy as np
 import requests
 import time
 
-df = pd.read_csv('data/xeno_canto_recordings.csv')
+df = pd.read_csv('../data/xeno_canto_recordings.csv')
 df = df[['id', 'file']]
 
 n = len(df.index)
