@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 from requests.exceptions import HTTPError
 
-birds_list = pd.read_csv('data/bird_species_in_poland_31.12.2022.csv')
+birds_list = pd.read_csv('../data/bird_species_in_poland_31.12.2022.csv')
 df = pd.DataFrame(columns=['id', 'gen', 'sp', 'ssp',
                            'group', 'en', 'rec', 'cnt',
                            'loc', 'lat', 'lng', 'alt',
@@ -52,4 +52,4 @@ for species in birds_list['Latin name']:
         print(f'Other error occurred: {err}')
 
 df.fillna(np.NaN, inplace=True)
-df.to_csv("data/xeno_canto_recordings.csv")
+df.to_csv("../data/xeno_canto_recordings.csv")

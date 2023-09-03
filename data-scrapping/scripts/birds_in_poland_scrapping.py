@@ -23,4 +23,4 @@ for row in soup.find_all('tr'):
         df.loc[len(df.index)] = [latin_name, polish_name, category, status]
 
 
-df.to_csv("data/bird_species_in_poland_31.12.2022.csv")
+df.to_csv("../data/bird_species_in_poland_31.12.2022.csv")
