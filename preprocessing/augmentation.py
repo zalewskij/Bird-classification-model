@@ -1,22 +1,38 @@
 import numpy as np
 import librosa
 
+
 class Augmentation:
-    def __init__(self, name, age):
-        pass
+    """
+    Class implementing different augmentations techniques
+    """
 
     @staticmethod
     def add_white_noise(signal, noise_factor):
+        """
+        Add gaussian/white noise to the signal
+        Parameters
+        ----------
+        signal : np.array
+            Sound signal
+        noise_factor : float
+            Bigger factor -> noisier signal
+
+        Returns
+        -------
+        np.array
+            Noisy signal
+        """
         noise = np.random.normal(0, signal.std(), signal.size)
         return signal + noise * noise_factor
 
     @staticmethod
     def time_stretch(signal, stretch_rate):
-        return librosa.effects.time_stretch(signal, rate = stretch_rate)
+        return librosa.effects.time_stretch(signal, rate=stretch_rate)
 
     @staticmethod
     def pitch_scale(signal, sr, n_semitones):
-        return librosa.effects.pitch_shift(signal, sr = sr, n_steps = n_semitones)
+        return librosa.effects.pitch_shift(signal, sr=sr, n_steps=n_semitones)
 
     @staticmethod
     def invert_polarity(signal):
@@ -25,12 +41,4 @@ class Augmentation:
     @staticmethod
     def random_gain(signal, min_gain_factor, maximum_gain_factor):
         gain_factor = np.random.uniform(min_gain_factor, maximum_gain_factor)
-        return signal*gain_factor
-
-
-
-
-
-
-
-
+        return signal * gain_factor
