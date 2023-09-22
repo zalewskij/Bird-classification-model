@@ -1,5 +1,6 @@
 import numpy as np
 import librosa
+import math
 
 
 class Augmentation:
@@ -42,3 +43,12 @@ class Augmentation:
     def random_gain(signal, min_gain_factor, maximum_gain_factor):
         gain_factor = np.random.uniform(min_gain_factor, maximum_gain_factor)
         return signal * gain_factor
+
+    @staticmethod
+    def add_background_noise(signal, noise, noise_factor):
+        if len(noise) < len(signal):
+            noise = np.tile(noise, (math.ceil(len(signal) / len(noise))))
+        if len(noise) > len(signal):
+            start = np.random.randint(len(noise) - len(signal))
+            noise = noise[start:start+len(signal)]
+        return signal + noise * noise_factor
