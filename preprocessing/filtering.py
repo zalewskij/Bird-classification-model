@@ -1,4 +1,3 @@
-import pandas
 import pandas as pd
 
 
@@ -19,8 +18,8 @@ class Filtering:
         filtered_recordings: pandas.DataFrame
             Filtered list of recordings
         """
-        bird_species = pd.read_csv('data-scrapping/data/bird_species_in_poland_31.12.2022.csv')
-        df = pd.read_csv('data-scrapping/data/xeno_canto_recordings.csv')
+        bird_species = pd.read_csv('../data-scrapping/data/bird_species_in_poland_31.12.2022.csv')
+        df = pd.read_csv('../data-scrapping/data/xeno_canto_recordings.csv')
         filtered_bird_species = bird_species[bird_species['Status'].isin(('(l) P', 'L', 'l P', 'P'))]
         df['Latin name'] = df.gen + " " + df.sp
         filtered_recordings = df[df['Latin name'].isin(filtered_bird_species['Latin name'])]
@@ -28,8 +27,8 @@ class Filtering:
 
     @staticmethod
     def filter_by_species(df, gen, sp):
-        return df[(df['gen'] == gen) & (df['sp'] == sp)]
+        return df[(df['gen'].str.lower() == gen.lower()) & (df['sp'].str.lower() == sp.lower())]
 
     @staticmethod
     def filter_by_gen(df, gen):
-        return df[df['gen'] == gen]
+        return df[df['gen'].str.lower() == gen.lower()]
