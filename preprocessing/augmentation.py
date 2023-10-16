@@ -55,7 +55,7 @@ def pitch_scale(signal, sr, n_semitones):
     Returns
     -------
     np.array
-    Altered signal
+        Altered signal
     """
     return librosa.effects.pitch_shift(signal, sr=sr, n_steps=n_semitones)
 
@@ -71,7 +71,7 @@ def invert_polarity(signal):
     Returns
     -------
     np.array
-    Inverted signal
+        Inverted signal
     """
     return signal * -1
 
@@ -91,7 +91,7 @@ def random_gain(signal, min_gain_factor, maximum_gain_factor):
     Returns
     -------
     np.array
-    Scaled signal
+        Scaled signal
     """
     gain_factor = np.random.uniform(min_gain_factor, maximum_gain_factor)
     return signal * gain_factor
@@ -112,7 +112,7 @@ def add_background_noise(signal, noise, noise_factor):
     Returns
     -------
     np.array
-    Obtained signal
+        Obtained signal
     """
     if len(noise) < len(signal):
         noise = np.tile(noise, (math.ceil(len(signal) / len(noise))))
@@ -133,7 +133,7 @@ def time_shift(signal):
     Returns
     -------
     np.array
-    Shifted signal
+        Shifted signal
     """
     max_shift = int(len(signal) * 0.1)
     signal = np.roll(signal, np.random.randint(-max_shift, max_shift))
@@ -155,7 +155,7 @@ def random_chunk(signal, sr, chunk_size):
     Returns
     -------
     np.array
-    Random part of the signal
+        Random part of the signal
     """
     chunk_size *= sr
     start = np.random.randint(0, len(signal) - chunk_size)
@@ -188,7 +188,7 @@ def partial_time_and_pitch_stretching(signal, sr, min_duration, max_duration, ti
     Returns
     -------
     np.array
-    Altered signal
+        Altered signal
     """
     start = 0
     new_signal = []
