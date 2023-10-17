@@ -62,7 +62,7 @@ def matched_filter(x, sr, filter):
     x : np.array
         Unknown signal
     sr : int
-        Sampling rate
+        sampling rate
     filter: np.array
         Template signal
     """
@@ -87,4 +87,4 @@ def matched_filter(x, sr, filter):
     time_stop = ind_stop[0] - filter_delay
     start_stop = np.sort(np.concatenate((time_start, time_stop)))
 
-    plot_selected_waveform(x, start_stop)
+    plot_selected_waveform(x, sr, start_stop)

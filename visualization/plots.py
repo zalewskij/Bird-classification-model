@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
 import IPython.display as ipd
+import matplotlib.pyplot as plt
 
 
 def plot_waveform(x, sr):
@@ -25,7 +25,7 @@ def plot_waveform(x, sr):
     ipd.display(ipd.Audio(data=x, rate=sr))
 
 
-def plot_selected_waveform(x, start_stop):
+def plot_selected_waveform(x, sr,  start_stop):
     """
     Plot the waveform,
 
@@ -33,6 +33,8 @@ def plot_selected_waveform(x, start_stop):
     ----------
     x : np.array
         waveform
+    sr : int
+        sampling rate
     start_stop : List
         indices of subsequent chunks of filtered parts of waveform
     """
@@ -42,6 +44,7 @@ def plot_selected_waveform(x, start_stop):
     plt.xlabel('Time (samples)')
     plt.ylabel('Amplitude')
 
-    for i in range(0, len(start_stop), 2):
-        plt.axvspan(start_stop[i], start_stop[i + 1], color='red', alpha=0.5)
+    for i in range(1, len(start_stop), 2):
+        plt.axvspan(start_stop[i-1], start_stop[i], color='red', alpha=0.5)
     plt.grid()
+    ipd.display(ipd.Audio(data=x, rate=sr))
