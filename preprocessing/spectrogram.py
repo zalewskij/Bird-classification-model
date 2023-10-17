@@ -10,7 +10,7 @@ def generate_mel_spectrogram(y, sr, n_fft, hop_length, number_of_bands = 64, fmi
     normalized_M_db = (M_db + 80) / 80
     return normalized_M_db
 
-def export_spectrogram(input_filename, output_filename):
+def export_and_save_spectrogram(input_filename, output_filename):
     sr = 48000 # sampling rate
     n_fft = 512 # frames per window
     hop_length = 3 * 128 # overlap
@@ -20,4 +20,17 @@ def export_spectrogram(input_filename, output_filename):
     peak = get_loudest_index(y, n_fft, hop_length)
     y = cut_around_index(y, peak, sr * sample_length)
     spectrogram = generate_mel_spectrogram(y, sr, n_fft, hop_length)
-    save_array_as_image(output_filename, spectrogram)
+    img = array_to_image(spectrogram)
+    img.save(output_filename)
+
+def export_spectrograms_with_threshold(input_filename):
+    sr = 48000 # sampling rate
+    n_fft = 512 # frames per window
+    hop_length = 3 * 128 # overlap
+    sample_length = 3 # length of sample for spectrogram
+    threshold = 0.7 # percent of maximal loudness
+
+    y, _ = librosa.load(input_filename, sr=sr)
+    samples = get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold)
+    spectrograms = [generate_mel_spectrogram(sample, sr, n_fft, hop_length) for sample in samples]
+    return [array_to_image(x) for x in spectrograms]

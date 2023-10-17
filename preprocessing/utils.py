@@ -22,18 +22,36 @@ def cut_around_index(y, center, length):
     return y[left_index:right_index]
 
 
-def save_array_as_image(filename, array):
-    img = Image.fromarray(np.uint8(array * 255), 'L')
-    img.save(filename)
+def array_to_image(array):
+    return Image.fromarray(np.uint8(array * 255), 'L')
 
 
-def get_loudest_index(y, n_fft, hop_length):
+def convert_waveform_to_loudness(y, n_fft, hop_length):
     # https://stackoverflow.com/questions/73208147/identifying-the-loudest-part-of-an-audio-track-and-cropping-librosa-or-torchaud
     clip_rms = librosa.feature.rms(y=y, frame_length=n_fft, hop_length=hop_length)
-    clip_rms = clip_rms.squeeze()
-    peak_rms_index = clip_rms.argmax()
-    return peak_rms_index * hop_length + int(n_fft / 2)
+    return clip_rms.squeeze()
 
+def get_loudest_index(y, n_fft, hop_length):
+    clip_rms = convert_waveform_to_loudness(y, n_fft, hop_length)
+    return clip_rms.argmax() * hop_length + int(n_fft / 2)
+
+def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold):
+    clip_rms = convert_waveform_to_loudness(y, n_fft, hop_length)
+    peak_rms_index = clip_rms.argmax()
+
+    sample_length_for_rms = int(sample_length * sr / hop_length)
+
+    best_sample_start_rms = peak_rms_index - int(sample_length_for_rms / 2)
+    start = best_sample_start_rms - int(best_sample_start_rms / sample_length_for_rms) * sample_length_for_rms
+    number_of_potential_samples = int((len(clip_rms) - start) / sample_length_for_rms)
+
+    potential_samples = [x * sample_length_for_rms + start for x in range(number_of_potential_samples)]
+
+    loudness_threshold = threshold * clip_rms[peak_rms_index]
+    samples = [x for x in potential_samples if clip_rms[x:x+sample_length_for_rms].max() > loudness_threshold]
+
+    chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
+    return [y[left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
 
 def matched_filter(x, sr, filter):
     """
