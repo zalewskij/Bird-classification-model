@@ -1,8 +1,21 @@
 import numpy as np
 import librosa
 import math
+from time import time
 
 
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time()
+        result = func(*args, **kwargs)
+        end = time()
+        print(f'Function: {func.__name__!r}, execution time: {end - start}')
+        return result
+
+    return wrapper
+
+
+@timer
 def add_white_noise(signal, noise_factor):
     """
     Add gaussian/white noise to the signal
@@ -22,6 +35,7 @@ def add_white_noise(signal, noise_factor):
     return signal + noise * noise_factor
 
 
+@timer
 def time_stretch(signal, stretch_rate):
     """
     Stretches the signal
@@ -40,6 +54,7 @@ def time_stretch(signal, stretch_rate):
     return librosa.effects.time_stretch(signal, rate=stretch_rate)
 
 
+@timer
 def pitch_scale(signal, sr, n_semitones):
     """
     Changes the pitch of the signal
@@ -60,6 +75,7 @@ def pitch_scale(signal, sr, n_semitones):
     return librosa.effects.pitch_shift(signal, sr=sr, n_steps=n_semitones)
 
 
+@timer
 def invert_polarity(signal):
     """
     Inverts the polarity of the signal
@@ -76,6 +92,7 @@ def invert_polarity(signal):
     return signal * -1
 
 
+@timer
 def random_gain(signal, min_gain_factor, maximum_gain_factor):
     """
     Scales the amplitude of the signal
@@ -97,6 +114,7 @@ def random_gain(signal, min_gain_factor, maximum_gain_factor):
     return signal * gain_factor
 
 
+@timer
 def add_background_noise(signal, noise, noise_factor):
     """
     Adds another audio to the signal
@@ -122,6 +140,7 @@ def add_background_noise(signal, noise, noise_factor):
     return signal + noise * noise_factor
 
 
+@timer
 def time_shift(signal):
     """
     Shifts the audio in time
@@ -140,6 +159,7 @@ def time_shift(signal):
     return signal
 
 
+@timer
 def random_chunk(signal, sr, chunk_size):
     """
     Obtains a random part of the signal
@@ -163,6 +183,7 @@ def random_chunk(signal, sr, chunk_size):
     return signal
 
 
+@timer
 def partial_time_and_pitch_stretching(signal, sr, min_duration, max_duration, time_sd, pitch_sd, time_mean, pitch_mean):
     """
     Random partial stretching in time and frequency
