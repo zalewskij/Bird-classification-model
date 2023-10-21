@@ -8,6 +8,22 @@ from visualization.plots import plot_selected_waveform
 
 
 def cut_around_index(y, center, length):
+    """
+    Return a fragment of the signal centered at given index with given length
+    Parameters
+    ----------
+    y : np.array
+        Signal represented as an array
+    center : int
+        index in the array which will be the center of the fragment
+    length : int
+        length of the fragment
+
+    Returns
+    -------
+    np.array
+        Fragment of the signal represented as an array
+    """
     half_slice_width = int(length / 2)
     left_index = center - half_slice_width
     right_index = center + half_slice_width
@@ -27,15 +43,69 @@ def array_to_image(array):
 
 
 def convert_waveform_to_loudness(y, n_fft, hop_length):
-    # https://stackoverflow.com/questions/73208147/identifying-the-loudest-part-of-an-audio-track-and-cropping-librosa-or-torchaud
+    """
+    https://stackoverflow.com/questions/73208147/identifying-the-loudest-part-of-an-audio-track-and-cropping-librosa-or-torchaud
+    Converts a signal (sound) to the loudness representation 
+    Parameters
+    ----------
+    y : np.array
+        Signal represented as an array
+    n_fft : int
+        frames per window
+    hop_length : int
+        overlap of windows
+
+    Returns
+    -------
+    np.array
+        Loundness of the signal
+    """
     clip_rms = librosa.feature.rms(y=y, frame_length=n_fft, hop_length=hop_length)
     return clip_rms.squeeze()
 
+
 def get_loudest_index(y, n_fft, hop_length):
+    """
+    Finds the loudest part of a signal
+    Parameters
+    ----------
+    y : np.array
+        Signal represented as an array
+    n_fft : int
+        frames per window
+    hop_length : int
+        overlap of windows
+
+    Returns
+    -------
+    int
+        Index of the loudest part
+    """
     clip_rms = convert_waveform_to_loudness(y, n_fft, hop_length)
     return clip_rms.argmax() * hop_length + int(n_fft / 2)
 
+
 def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold):
+    """
+    Selects the fragments of a given length from the signal, based on their loudness
+    Parameters
+    ----------
+    y : np.array
+        Signal represented as an array
+    sr : int
+        sampling rate
+    n_fft : int
+        frames per window
+    hop_length : int
+        overlap of windows
+    sample_length: int
+        length of the created samples
+
+    Returns
+    -------
+    list[np.array]
+        List of fragments of the given signal
+    """
     clip_rms = convert_waveform_to_loudness(y, n_fft, hop_length)
     peak_rms_index = clip_rms.argmax()
 
@@ -52,6 +122,7 @@ def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold
 
     chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
     return [y[left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
+
 
 def matched_filter(x, sr, filter):
     """
