@@ -38,9 +38,9 @@ def filter_recordings_30():
     recordings_30: pandas.DataFrame
         Recordings of chosen 30 bird species
     """
-    df = pd.read_csv("../data/bird-list-extended.csv", delimiter=";")
+    df = pd.read_csv("../data-scrapping/data/bird-list-extended.csv", delimiter=";")
     species_30 = df[df["Top 30"] == 1]
-    recordings = pd.read_csv("../data/xeno_canto_recordings.csv")
+    recordings = pd.read_csv("../data-scrapping/data/xeno_canto_recordings.csv")
     recordings['Latin name'] = recordings.gen + " " + recordings.sp
     recordings_30 = recordings[recordings["Latin name"].isin(species_30["Latin name"])].reset_index()
     return recordings_30
