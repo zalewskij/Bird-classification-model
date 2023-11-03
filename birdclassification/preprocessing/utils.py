@@ -1,11 +1,21 @@
 from PIL import Image
 import numpy as np
 from scipy import signal
-from matplotlib import pyplot as plt
 import librosa
 from scipy.signal import hilbert
 from birdclassification.visualization.plots import plot_selected_waveform
+from time import time
 
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time()
+        result = func(*args, **kwargs)
+        end = time()
+        print(f'Function: {func.__name__!r}, execution time: {end - start}')
+        return result
+
+    return wrapper
 
 def cut_around_index(y, center, length):
     """

@@ -1,18 +1,7 @@
 import numpy as np
 import librosa
 import math
-from time import time
-
-
-def timer(func):
-    def wrapper(*args, **kwargs):
-        start = time()
-        result = func(*args, **kwargs)
-        end = time()
-        print(f'Function: {func.__name__!r}, execution time: {end - start}')
-        return result
-
-    return wrapper
+from utils import timer
 
 
 @timer
