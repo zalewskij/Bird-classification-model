@@ -31,7 +31,7 @@ def filter_by_gen(df, gen):
 def filter_recordings_30():
     """
     To test the models there is no need to use all species.
-    Based on data-scrapping/data/bird-list-extended a function filter a subset of 30 species
+    Based on scipts/data/bird-list-extended a function filter a subset of 30 species
 
     Returns
     -------

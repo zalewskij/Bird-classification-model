@@ -27,7 +27,7 @@ def plot_waveform(x, sr):
 
 def plot_selected_waveform(x, sr,  start_stop):
     """
-    Plot the waveform,
+    Plot the waveform and highlight the selected sound of a bird.
 
     Parameters
     ----------
