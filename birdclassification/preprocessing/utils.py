@@ -17,7 +17,7 @@ def timer(func):
 
     return wrapper
 
-def cut_around_index(y, center, length):
+def cut_around_index_librosa(y, center, length):
     """
     Return a fragment of the signal centered at given index with given length
     Parameters
@@ -46,6 +46,36 @@ def cut_around_index(y, center, length):
         left_index = right_index - 2 * half_slice_width
 
     return y[left_index:right_index]
+
+def cut_around_index(y, center, length):
+    """
+    Return a fragment of the signal centered at given index with given length
+    Parameters
+    ----------
+    y : Tensor
+        Signal represented as a tensor
+    center : int
+        index in the array which will be the center of the fragment
+    length : int
+        length of the fragment
+
+    Returns
+    -------
+    Tensor
+        Fragment of the signal represented as a tensor
+    """
+    half_slice_width = int(length / 2)
+    left_index = center - half_slice_width
+    right_index = center + half_slice_width
+
+    if left_index < 0:
+        left_index = 0
+        right_index = 2 * half_slice_width
+    elif right_index >= y.size()[1]:
+        right_index = y.size()[1]
+        left_index = right_index - 2 * half_slice_width
+
+    return y[:, left_index:right_index]
 
 
 def array_to_image(array):
@@ -95,7 +125,7 @@ def get_loudest_index(y, n_fft, hop_length):
     return clip_rms.argmax() * hop_length + int(n_fft / 2)
 
 
-def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold):
+def get_thresholded_fragments_librosa(y, sr, n_fft, hop_length, sample_length, threshold):
     """
     Selects the fragments of a given length from the signal, based on their loudness
     Parameters
@@ -132,6 +162,45 @@ def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold
 
     chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
     return [y[left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
+
+
+def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold):
+    """
+    Selects the fragments of a given length from the signal, based on their loudness
+    Parameters
+    ----------
+    y : Tensor
+        Signal represented as a tensor
+    sr : int
+        sampling rate
+    n_fft : int
+        frames per window
+    hop_length : int
+        overlap of windows
+    sample_length: int
+        length of the created samples
+
+    Returns
+    -------
+    list[Tensor]
+        List of fragments of the given signal
+    """
+    clip_rms = convert_waveform_to_loudness(y, n_fft, hop_length)
+    peak_rms_index = clip_rms.argmax()
+
+    sample_length_for_rms = int(sample_length * sr / hop_length)
+
+    best_sample_start_rms = peak_rms_index - int(sample_length_for_rms / 2)
+    start = best_sample_start_rms - int(best_sample_start_rms / sample_length_for_rms) * sample_length_for_rms
+    number_of_potential_samples = int((len(clip_rms) - start) / sample_length_for_rms)
+
+    potential_samples = [x * sample_length_for_rms + start for x in range(number_of_potential_samples)]
+
+    loudness_threshold = threshold * clip_rms[peak_rms_index]
+    samples = [x for x in potential_samples if clip_rms[x:x+sample_length_for_rms].max() > loudness_threshold]
+
+    chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
+    return [y[:, left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
 
 
 def matched_filter(x, sr, filter):
