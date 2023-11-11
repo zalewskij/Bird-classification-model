@@ -1,7 +1,10 @@
-import numpy as np
+import random
 import librosa
 import math
-from utils import timer
+import numpy as np
+import torch
+
+from birdclassification.preprocessing.utils import timer
 
 
 @timer
@@ -10,18 +13,21 @@ def add_white_noise(signal, noise_factor):
     Add gaussian/white noise to the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
     noise_factor : float
         Bigger factor -> noisier signal
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Noisy signal
     """
-    noise = np.random.normal(0, signal.std(), signal.size)
-    return signal + noise * noise_factor
+    noise = torch.normal(0, signal.std(), signal.shape)
+    if isinstance(signal, np.ndarray):
+        signal = torch.from_numpy(signal)
+    noisy_signal = signal + noise * noise_factor
+    return noisy_signal
 
 
 @timer
@@ -30,26 +36,26 @@ def time_stretch(signal, stretch_rate):
     Stretches the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
     stretch_rate : float
         Bigger factor -> longer signal
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Stretched signal
     """
     return librosa.effects.time_stretch(signal, rate=stretch_rate)
 
 
 @timer
-def pitch_scale(signal, sr, n_semitones):
+def pitch_shift(signal, sr, n_semitones):
     """
     Changes the pitch of the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
     sr : float
         Sampling rate of the signal
@@ -58,7 +64,7 @@ def pitch_scale(signal, sr, n_semitones):
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Altered signal
     """
     return librosa.effects.pitch_shift(signal, sr=sr, n_steps=n_semitones)
@@ -70,36 +76,33 @@ def invert_polarity(signal):
     Inverts the polarity of the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Inverted signal
     """
     return signal * -1
 
 
 @timer
-def random_gain(signal, min_gain_factor, maximum_gain_factor):
+def random_gain(signal, gain_factor):
     """
     Scales the amplitude of the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
-    min_gain_factor : float
-        Lower-bound for the scaling
-    maximum_gain_factor: float
-        Upper-bound for the scaling
+    gain_factor : float
+         Scaling factor
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Scaled signal
     """
-    gain_factor = np.random.uniform(min_gain_factor, maximum_gain_factor)
     return signal * gain_factor
 
 
@@ -109,7 +112,7 @@ def add_background_noise(signal, noise, noise_factor):
     Adds another audio to the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
     noise : np.array
         Second sound signal - the one to be added
@@ -118,7 +121,7 @@ def add_background_noise(signal, noise, noise_factor):
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Obtained signal
     """
     if len(noise) < len(signal):
@@ -130,21 +133,21 @@ def add_background_noise(signal, noise, noise_factor):
 
 
 @timer
-def time_shift(signal):
+def time_shift(signal, shift_factor):
     """
     Shifts the audio in time
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Shifted signal
     """
-    max_shift = int(len(signal) * 0.1)
-    signal = np.roll(signal, np.random.randint(-max_shift, max_shift))
+    max_shift = int(len(signal) * shift_factor)
+    signal = np.roll(signal, random.randint(-max_shift, max_shift))
     return signal
 
 
@@ -154,21 +157,22 @@ def random_chunk(signal, sr, chunk_size):
     Obtains a random part of the signal
     Parameters
     ----------
-    signal : np.array
+    signal : torch.Tensor
         Sound signal
     sr : float
         Sampling rate of the signal
-    chunk_size: int
-        Number of seconds wanted
+    chunk_size: float
+        Proportion of the audio wanted
 
     Returns
     -------
-    np.array
+    torch.Tensor
         Random part of the signal
     """
-    chunk_size *= sr
-    start = np.random.randint(0, len(signal) - chunk_size)
-    signal = signal[start: start + chunk_size]
+    seconds = int(chunk_size * len(signal)/sr)
+    seconds *= sr
+    start = random.randint(0, len(signal) - seconds)
+    signal = signal[start: start + seconds]
     return signal
 
 
@@ -205,7 +209,7 @@ def partial_time_and_pitch_stretching(signal, sr, min_duration, max_duration, ti
     min_segment = int(min_duration * sr)
     max_segment = int(max_duration * sr)
     while start < len(signal):
-        length = np.random.randint(min_segment, max_segment)
+        length = random.randint(min_segment, max_segment)
         segment = signal[start:min(start + length, len(signal))]
 
         time_stretch_rate = np.random.normal(time_mean, time_sd)
@@ -217,4 +221,4 @@ def partial_time_and_pitch_stretching(signal, sr, min_duration, max_duration, ti
         start = min(start + length, len(signal))
         new_signal.extend(segment)
 
-    return np.array(new_signal)
+    return new_signal
