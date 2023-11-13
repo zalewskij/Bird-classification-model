@@ -33,8 +33,8 @@ def generate_mel_spectrogram(y, sr, n_fft, hop_length, number_of_bands = 64, fmi
     transform = torchaudio.transforms.MelSpectrogram(sample_rate=sr, n_fft=n_fft, hop_length=hop_length, f_min=fmin, f_max=fmax, n_mels=number_of_bands)
     M = transform(y)[0]
     M_db = librosa.power_to_db(M, ref=np.max)
-    normalized_M_db = (M_db + 80) / 80
-    return normalized_M_db
+    #normalized_M_db = (M_db + 80) / 80
+    return M_db
 
 
 def export_and_save_spectrogram(input_filename, output_filename):

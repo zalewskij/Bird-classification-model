@@ -1,5 +1,6 @@
 import IPython.display as ipd
 import matplotlib.pyplot as plt
+import librosa
 
 
 def plot_waveform(x, sr):
@@ -48,3 +49,12 @@ def plot_selected_waveform(x, sr,  start_stop):
         plt.axvspan(start_stop[i-1], start_stop[i], color='red', alpha=0.5)
     plt.grid()
     ipd.display(ipd.Audio(data=x, rate=sr))
+
+
+def plot_torch_spectrogram(spectrogram, title=None, ylabel="freq_bin", ax=None):
+    if ax is None:
+        _, ax = plt.subplots(1, 1)
+    if title is not None:
+        ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.imshow(spectrogram, origin="lower", aspect="auto", interpolation="nearest")

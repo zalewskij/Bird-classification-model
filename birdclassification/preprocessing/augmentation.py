@@ -147,7 +147,7 @@ def time_shift(signal, shift_factor):
         Shifted signal
     """
     max_shift = int(len(signal) * shift_factor)
-    signal = np.roll(signal, random.randint(-max_shift, max_shift))
+    signal = torch.roll(signal, random.randint(-max_shift, max_shift))
     return signal
 
 
@@ -169,10 +169,10 @@ def random_chunk(signal, sr, chunk_size):
     torch.Tensor
         Random part of the signal
     """
-    seconds = int(chunk_size * len(signal)/sr)
+    seconds = int(chunk_size * signal.size()[1]/sr)
     seconds *= sr
-    start = random.randint(0, len(signal) - seconds)
-    signal = signal[start: start + seconds]
+    start = random.randint(0, signal.size()[1] - seconds)
+    signal = signal[:, start: start + seconds]
     return signal
 
 
