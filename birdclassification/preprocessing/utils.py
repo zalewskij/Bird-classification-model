@@ -1,3 +1,4 @@
+import torch
 from PIL import Image
 import numpy as np
 from scipy import signal
@@ -16,6 +17,7 @@ def timer(func):
         return result
 
     return wrapper
+
 
 def cut_around_index_librosa(y, center, length):
     """
@@ -46,6 +48,7 @@ def cut_around_index_librosa(y, center, length):
         left_index = right_index - 2 * half_slice_width
 
     return y[left_index:right_index]
+
 
 def cut_around_index(y, center, length):
     """
@@ -158,7 +161,7 @@ def get_thresholded_fragments_librosa(y, sr, n_fft, hop_length, sample_length, t
     potential_samples = [x * sample_length_for_rms + start for x in range(number_of_potential_samples)]
 
     loudness_threshold = threshold * clip_rms[peak_rms_index]
-    samples = [x for x in potential_samples if clip_rms[x:x+sample_length_for_rms].max() > loudness_threshold]
+    samples = [x for x in potential_samples if clip_rms[x:x + sample_length_for_rms].max() > loudness_threshold]
 
     chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
     return [y[left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
@@ -197,7 +200,7 @@ def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold
     potential_samples = [x * sample_length_for_rms + start for x in range(number_of_potential_samples)]
 
     loudness_threshold = threshold * clip_rms[peak_rms_index]
-    samples = [x for x in potential_samples if clip_rms[x:x+sample_length_for_rms].max() > loudness_threshold]
+    samples = [x for x in potential_samples if clip_rms[x:x + sample_length_for_rms].max() > loudness_threshold]
 
     chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
     return [y[:, left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
@@ -238,3 +241,20 @@ def matched_filter(x, sr, filter):
     start_stop = np.sort(np.concatenate((time_start, time_stop)))
 
     plot_selected_waveform(x, sr, start_stop)
+
+
+def mix_down(waveform):
+    """
+    Convert stereo to mono using a mean of two signals.
+    https://github.com/pytorch/audio/issues/363
+    Parameters
+    ----------
+    self
+    waveform: torch.Tensor
+    Returns
+    -------
+
+    """
+    if waveform.shape[0] > 1:
+        waveform = torch.mean(waveform, dim=0, keepdim=True)
+    return waveform
