@@ -5,7 +5,8 @@ from birdclassification.preprocessing.augmentations import InvertPolarity, AddWh
 from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram
 from birdclassification.preprocessing.utils import get_loudest_index, cut_around_index
 import pickle
-from birdclassification.preprocessing.utils import mix_down
+from birdclassification.preprocessing.utils import mix_down, right_pad
+from birdclassification.preprocessing.utils import timer
 
 
 class PreprocessingPipeline(torch.nn.Module):
@@ -47,6 +48,7 @@ class PreprocessingPipeline(torch.nn.Module):
         self.get_loudest_index = get_loudest_index
         self.cut_around_largest_index = cut_around_index
         self.mix_down = mix_down
+        self.right_pad= right_pad
 
     def save(self, filepath):
         file = open(filepath, 'wb')
@@ -59,12 +61,17 @@ class PreprocessingPipeline(torch.nn.Module):
         file.close()
         return element
 
+    #@timer
     def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        #print(waveform.shape)
         waveform = self.mix_down(waveform)
+        #print(waveform.shape)
+        waveform = self.right_pad(waveform, minimal_length=self.parameters['sample_length'] * self.parameters['sr'])
 
         # select loudest 3 second chunk
         peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
         waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
+        #print(waveform.shape)
 
         # augmentations
         if self.augmentations:
@@ -76,5 +83,5 @@ class PreprocessingPipeline(torch.nn.Module):
 
         # generate spectrogram
         spectrogram = self.get_spectrogram(waveform, self.parameters['sr'], self.parameters['n_fft'], self.parameters['hop_length'])
-
+        #print(spectrogram.shape)
         return spectrogram

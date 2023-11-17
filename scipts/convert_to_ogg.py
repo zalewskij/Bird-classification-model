@@ -22,6 +22,7 @@ EXTENSION = ".ogg"
 #         filepath_old = os.path.join(path, name)
 #         os.rename(filepath_old, filepath_new)
 DIRS = ['Sturnus vulgaris', 'Pica pica', 'Passer domesticus', 'Grus grus', 'Garrulus glandarius', 'Corvus cornix']
+DIRS = ['Carduelis carduelis', 'Asio otus']
 SOURCE = '/media/jacek/E753-A120/recordings_30/'
 
 for i in DIRS:
@@ -31,6 +32,7 @@ for i in DIRS:
         try:
             print(f"{DIR}{file}")
             sound = AudioSegment.from_file(f"{DIR}{file}")
+            sound = sound.set_frame_rate(32000)
             sound.export(f"{DIR}{file}", format="ogg")
         except Exception as error:
             print("An exception occurred:", error)

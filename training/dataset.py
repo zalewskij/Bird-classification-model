@@ -27,5 +27,8 @@ class Recordings30(Dataset):
         label = self.label[idx]
         #label = label.to(self.device)
         audio = self.preprocessing_pipeline(audio)
-        return audio, label
+        return audio, label, self.filepath[idx]
+
+    def get_filepath(self, idx):
+        return self.filepath[idx]
 
