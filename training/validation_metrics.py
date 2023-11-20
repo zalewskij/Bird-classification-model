@@ -31,6 +31,7 @@ def calculate_metric(model, val_loader, average = 'macro', metric = None):
     predicted_labels = torch.Tensor()
     with torch.no_grad():
         for images, labels in val_loader:
+            images = torch.unsqueeze(images, dim=1)
             validation_output = model(images)
             predictions = torch.max(validation_output, dim = 1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
@@ -56,7 +57,9 @@ def data_loader_balanced_accuracy(model, val_loader):
     predicted_labels = torch.Tensor()
     with torch.no_grad():
         for images, labels in val_loader:
+            images = torch.unsqueeze(images, dim=1)
             validation_output = model(images)
+
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels))
@@ -80,6 +83,7 @@ def data_loader_balanced_accuracy(model, val_loader):
     predicted_labels = torch.Tensor()
     with torch.no_grad():
         for images, labels in val_loader:
+            images = torch.unsqueeze(images, dim=1)
             validation_output = model(images)
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))

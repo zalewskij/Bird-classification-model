@@ -7,6 +7,7 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn,
 
     for i, data in enumerate(training_loader):
         inputs, labels = data
+        inputs = torch.unsqueeze(inputs, dim=1)
 
         # Zero your gradients for every batch!
         optimizer.zero_grad()
@@ -23,9 +24,9 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn,
 
         # Gather data and report
         running_loss += loss.item()
-        if i % 1000 == 999:
-            last_loss = running_loss / 1000  # loss per batch
-            print(f'Loss after sample {i + 1}: {last_loss}')
+        if i % 10 == 9:
+            last_loss = running_loss / 10  # loss per batch
+            print(f'Loss after batch {i + 1}: {last_loss}')
             tb_x = epoch_index * len(training_loader) + i + 1
             tb_writer.add_scalar('Loss/train', last_loss, tb_x)
             running_loss = 0.

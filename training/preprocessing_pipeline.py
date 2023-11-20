@@ -63,25 +63,20 @@ class PreprocessingPipeline(torch.nn.Module):
 
     #@timer
     def forward(self, waveform: torch.Tensor) -> torch.Tensor:
-        #print(waveform.shape)
         waveform = self.mix_down(waveform)
-        #print(waveform.shape)
         waveform = self.right_pad(waveform, minimal_length=self.parameters['sample_length'] * self.parameters['sr'])
 
         # select loudest 3 second chunk
         peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
         waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
-        #print(waveform.shape)
 
         # augmentations
         if self.augmentations:
             n = random.randint(0, len(self.augmentations))
             selected = random.choices(list(self.augmentations), weights=self.probabilities, k=n)
-            print(selected)
             aug = torch.nn.Sequential(*selected)
             waveform = aug(waveform)
 
         # generate spectrogram
         spectrogram = self.get_spectrogram(waveform, self.parameters['sr'], self.parameters['n_fft'], self.parameters['hop_length'])
-        #print(spectrogram.shape)
         return spectrogram

@@ -1,6 +1,7 @@
 import IPython.display as ipd
 import matplotlib.pyplot as plt
 import librosa
+import torch
 
 
 def plot_waveform(x, sr):
@@ -58,3 +59,25 @@ def plot_torch_spectrogram(spectrogram, title=None, ylabel="freq_bin", ax=None):
         ax.set_title(title)
     ax.set_ylabel(ylabel)
     ax.imshow(spectrogram, origin="lower", aspect="auto", interpolation="nearest")
+
+def plot_torch_waveform(waveform, sample_rate, title="Waveform", xlim=None, ylim=None):
+  waveform = waveform.numpy()
+
+  num_channels, num_frames = waveform.shape
+  time_axis = torch.arange(0, num_frames) / sample_rate
+
+  figure, axes = plt.subplots(num_channels, 1)
+  if num_channels == 1:
+    axes = [axes]
+  for c in range(num_channels):
+    axes[c].plot(time_axis, waveform[c], linewidth=1)
+    axes[c].grid(True)
+    if num_channels > 1:
+      axes[c].set_ylabel(f'Channel {c+1}')
+    if xlim:
+      axes[c].set_xlim(xlim)
+    if ylim:
+      axes[c].set_ylim(ylim)
+  figure.suptitle(title)
+  plt.show(block=False)
+  ipd.display(ipd.Audio(data=waveform, rate=sample_rate))

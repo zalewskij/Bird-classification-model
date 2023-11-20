@@ -56,17 +56,11 @@ class CNNNetwork(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, input_data):
-        print("input", input_data.shape)
         x = self.conv1(input_data)
-        print("conv1", x.shape)
         x = self.conv2(x)
-        print("conv2", x.shape)
         x = self.conv3(x)
-        print("conv3", x.shape)
         x = self.conv4(x)
-        print("conv4", x.shape)
         x = self.flatten(x)
-        print("flatten", x.shape)
         logits = self.linear(x)
         predictions = self.softmax(logits)
         return predictions

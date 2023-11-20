@@ -18,8 +18,8 @@ def initial_filter(filepath_recordings='../data/xeno_canto_recordings.csv',
     df = pd.read_csv(filepath_recordings)
     filtered_bird_species = bird_species[bird_species['Status'].isin(('(l) P', 'L', 'l P', 'P'))]
     df['Latin name'] = df.gen + " " + df.sp
-    filtered_recordings = df[df['Latin name'].isin(filtered_bird_species['Latin name'])]
-    filtered_recordings = filtered_recordings[~filtered_recordings['id'].isin(recordings_to_remove)]
+    filtered_recordings = df[df['Latin name'].isin(filtered_bird_species['Latin name'])].reset_index()
+    filtered_recordings = filtered_recordings[~filtered_recordings['id'].isin(recordings_to_remove)].reset_index()
     return filtered_recordings
 
 
@@ -48,5 +48,5 @@ def filter_recordings_30(filepath_recordings='../data/xeno_canto_recordings.csv'
     recordings = pd.read_csv(filepath_recordings)
     recordings['Latin name'] = recordings.gen + " " + recordings.sp
     recordings_30 = recordings[recordings["Latin name"].isin(species_30["Latin name"])].reset_index()
-    recordings_30 = recordings_30[~recordings_30['id'].isin(recordings_to_remove)]
+    recordings_30 = recordings_30[~recordings_30['id'].isin(recordings_to_remove)].reset_index()
     return recordings_30
