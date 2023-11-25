@@ -1,7 +1,7 @@
 import torch
 
 
-def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn, model):
+def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn, model, device):
     running_loss = 0.
     last_loss = 0.
 
@@ -13,10 +13,10 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn,
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs)
+        outputs = model(inputs.to(device))
 
         # Compute the loss and its gradients
-        loss = loss_fn(outputs, labels)
+        loss = loss_fn(outputs, labels.to(device))
         loss.backward()
 
         # Adjust learning weights

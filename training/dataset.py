@@ -26,7 +26,7 @@ class Recordings30(Dataset):
     def __getitem__(self, idx):
         #print(self.get_filepath(idx))
         audio, sr = torchaudio.load(self.filepath[idx])
-        audio = audio.to(self.device)
+        # audio = audio.to(self.device)
         label = self.label[idx]
         #label = label.to(self.device)
         audio = self.preprocessing_pipeline(audio)
