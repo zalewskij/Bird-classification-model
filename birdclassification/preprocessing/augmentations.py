@@ -3,7 +3,7 @@ import os
 import random
 import torch
 import torchaudio
-from torchaudio.functional import pitch_shift
+from torchaudio.functional import pitch_shift, bandpass_biquad
 from torch.utils.data import Dataset
 from torchaudio.transforms import Resample
 
@@ -108,8 +108,20 @@ class TimeShift(torch.nn.Module):
         return waveform
 
 
-# Currently NOT used:
+# FILTERING
+class BandPass(torch.nn.Module):
+    def __init__(self, sr, central_freq, Q=0.707):
+        super().__init__()
+        self.sr = sr
+        self.central_freq = central_freq
+        self.Q = Q
 
+    def forward(self, waveform: torch.Tensor):
+        waveform = bandpass_biquad(waveform, self.sr, self.central_freq, self.Q)
+        return waveform
+
+
+# Currently NOT used
 class RandomChunk(torch.nn.Module):
     def __init__(self, sr, min_factor, max_factor):
         super().__init__()
