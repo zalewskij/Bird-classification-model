@@ -24,10 +24,34 @@ def initial_filter(filepath_recordings='../data/xeno_canto_recordings.csv',
 
 
 def filter_by_species(df, gen, sp):
+    """
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Recordings with gen column
+    gen: str
+        Filtering key
+    sp: str
+        Filtering key
+    Returns
+    -------
+    A dataframe of species filtered by gen and sp
+    """
     return df[(df['gen'].str.lower() == gen.lower()) & (df['sp'].str.lower() == sp.lower())]
 
 
 def filter_by_gen(df, gen):
+    """
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Recordings with gen column
+    gen: str
+        Filtering key
+    Returns
+    -------
+    A dataframe of species filtered by gen
+    """
     return df[df['gen'].str.lower() == gen.lower()]
 
 
