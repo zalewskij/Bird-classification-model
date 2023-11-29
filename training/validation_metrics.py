@@ -2,7 +2,7 @@ import torch
 from sklearn.metrics import balanced_accuracy_score, accuracy_score, confusion_matrix, classification_report
 
 
-def calculate_metric(model, val_loader, average='macro', metric=None):
+def calculate_metric(model, val_loader, device, average = 'macro', metric = None):
     """
     Calculate metric score for DataLoader instance
     (macro/micro precision/recall/f1 score)
@@ -35,15 +35,15 @@ def calculate_metric(model, val_loader, average='macro', metric=None):
     with torch.no_grad():
         for images, labels in val_loader:
             images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images)
-            predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
+            validation_output = model(images.to(device)).cpu()
+            predictions = torch.max(validation_output, dim = 1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels))
 
     return metric(true_labels, predicted_labels, average=average)
 
 
-def data_loader_balanced_accuracy(model, val_loader):
+def data_loader_balanced_accuracy(model, val_loader, device):
     """
     Calculate balanced accuracy score (macro)
     https://scikit-learn.org/stable/modules/generated/sklearn.metrics.balanced_accuracy_score.html
@@ -65,7 +65,7 @@ def data_loader_balanced_accuracy(model, val_loader):
     with torch.no_grad():
         for images, labels in val_loader:
             images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images)
+            validation_output = model(images.to(device)).cpu()
 
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
@@ -74,7 +74,7 @@ def data_loader_balanced_accuracy(model, val_loader):
     return balanced_accuracy_score(true_labels, predicted_labels)
 
 
-def data_loader_accuracy(model, val_loader):
+def data_loader_accuracy(model, val_loader, device):
     """
     Calculate accuracy score (micro)
     https://scikit-learn.org/stable/modules/model_evaluation.html#accuracy-score
@@ -96,7 +96,7 @@ def data_loader_accuracy(model, val_loader):
     with torch.no_grad():
         for images, labels in val_loader:
             images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images)
+            validation_output = model(images.to(device)).cpu()
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels))
@@ -104,7 +104,7 @@ def data_loader_accuracy(model, val_loader):
     return accuracy_score(true_labels, predicted_labels)
 
 
-def get_confusion_matrix(model, val_loader):
+def get_confusion_matrix(model, val_loader, device):
     """
     Parameters
     ----------
@@ -123,7 +123,7 @@ def get_confusion_matrix(model, val_loader):
     with torch.no_grad():
         for images, labels in val_loader:
             images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images)
+            validation_output = model(images.to(device)).cpu()
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels))
@@ -131,7 +131,7 @@ def get_confusion_matrix(model, val_loader):
     return confusion_matrix(true_labels, predicted_labels)
 
 
-def get_classification_report(model, val_loader):
+def get_classification_report(model, val_loader, device):
     """
     Parameters
     ----------
@@ -149,7 +149,7 @@ def get_classification_report(model, val_loader):
     with torch.no_grad():
         for images, labels in val_loader:
             images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images)
+            validation_output = model(images.to(device)).cpu()
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels))
