@@ -2,6 +2,25 @@ import torch
 
 
 def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn, model, device):
+    """
+    Function to train model in epoch
+
+    Parameters
+    ----------
+    epoch_index: int
+    tb_writer: TensorBoard writer object
+    training_loader: torch.DataLoader
+    optimizer: torch.optim Optimizer
+    loss_fn: torch nn Loss
+    model: nn.Module
+    device: str
+        cpu or cuda
+
+    Returns
+    -------
+    last_loss: float
+        Value of the loss in the epoch
+    """
     running_loss = 0.
     last_loss = 0.
 

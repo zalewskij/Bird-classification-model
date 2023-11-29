@@ -24,6 +24,9 @@ def calculate_metric(model, val_loader, device, average = 'macro', metric = None
         f1: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html
         recall: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
 
+    Returns
+    -------
+    Calculated metric: float
     """
 
     model.eval()
@@ -51,6 +54,10 @@ def data_loader_balanced_accuracy(model, val_loader, device):
         model used to predict labels
     val_loader: torch.utils.data.DataLoader
         DataLoader used to calculate validation score
+
+    Returns
+    -------
+    Calculated metric: float
     """
     model.eval()
     true_labels = torch.Tensor()
@@ -66,6 +73,7 @@ def data_loader_balanced_accuracy(model, val_loader, device):
 
     return balanced_accuracy_score(true_labels, predicted_labels)
 
+
 def data_loader_accuracy(model, val_loader, device):
     """
     Calculate accuracy score (micro)
@@ -77,6 +85,10 @@ def data_loader_accuracy(model, val_loader, device):
         model used to predict labels
     val_loader: torch.utils.data.DataLoader
         DataLoader used to calculate validation score
+
+    Returns
+    -------
+    Calculated metric: float
     """
     model.eval()
     true_labels = torch.Tensor()
@@ -91,6 +103,7 @@ def data_loader_accuracy(model, val_loader, device):
 
     return accuracy_score(true_labels, predicted_labels)
 
+
 def get_confusion_matrix(model, val_loader, device):
     """
     Parameters
@@ -103,7 +116,7 @@ def get_confusion_matrix(model, val_loader, device):
     Returns
     -------
     np.array
-    Confusion matrix
+        Confusion matrix
     """
     true_labels = torch.Tensor()
     predicted_labels = torch.Tensor()
@@ -129,6 +142,7 @@ def get_classification_report(model, val_loader, device):
 
     Returns
     -------
+    None
     """
     true_labels = torch.Tensor()
     predicted_labels = torch.Tensor()

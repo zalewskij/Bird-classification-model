@@ -8,6 +8,19 @@ from birdclassification.visualization.plots import plot_torch_spectrogram, plot_
 
 class Recordings30(Dataset):
     def __init__(self, df, recording_dir, noises_dir, sample_rate=32000, device="cpu"):
+        """
+        Parameters
+        ----------
+        df: pd.DataFrame
+            dataframe of recordings
+        recording_dir: str
+            filepath to the directory with recordings
+        noises_dir: pd.DataFrame
+            dataframe of noises
+        sample_rate: int
+        device: str
+            cpu or cuda depending on the used device
+        """
         df['filepath'] = df.apply(lambda x: f"{recording_dir}{x['Latin name']}/{str(x['id'])}.mp3", axis=1)
         le = LabelEncoder()
         df['label'] = le.fit_transform(df['Latin name'])
@@ -21,29 +34,65 @@ class Recordings30(Dataset):
         self.le_name_mapping = dict(zip(le.transform(le.classes_), le.classes_))
 
     def __len__(self):
+        """
+        Returns
+        -------
+        Size of the dataset: int
+        """
         return self.filepath.size
 
     def __getitem__(self, idx):
-        #print(self.get_filepath(idx))
+        """
+        Parameters
+        ----------
+        idx: int
+            Index of the recording
+
+        Returns
+        -------
+        audio: torch.Tensor
+            recording waveform
+        label:
+            label of the recording
+        """
         audio, sr = torchaudio.load(self.filepath[idx])
-        # audio = audio.to(self.device)
         label = self.label[idx]
-        #label = label.to(self.device)
         audio = self.preprocessing_pipeline(audio)
         return audio, label
 
     def get_filepath(self, idx):
+        """
+        Parameters
+        ----------
+        idx: int
+            Index of the recording
+
+        Returns
+        -------
+        Filepath of the recording: str
+        """
         return self.filepath[idx]
 
     def get_mapping(self):
+        """
+        Returns
+        -------
+        Dictionary mapping number to Latin name
+        """
         return self.le_name_mapping
 
     def visualize_dataset(self, idx, n):
         """
+        Function to plot waveform, spectrogram and play recording
+
         Parameters
         ----------
         idx: index of the first recording
         n: number of samples to plot
+
+        Returns
+        -------
+        None
         """
         for i in range(idx, idx + n):
             audio, sr = torchaudio.load(self.filepath[i])

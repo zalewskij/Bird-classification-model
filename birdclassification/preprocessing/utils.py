@@ -229,6 +229,9 @@ def matched_filter(x, sr, filter):
         sampling rate
     filter: np.array
         Template signal
+    Returns
+    -------
+    None
     """
     h = np.flip(filter)
     a = 1
@@ -266,7 +269,6 @@ def mix_down(waveform):
     -------
     waveform: torch.Tensor
         Mono waveform
-
     """
     if waveform.shape[0] > 1:
         waveform = torch.mean(waveform, dim=0, keepdim=True)
@@ -282,9 +284,8 @@ def right_pad(waveform, minimal_length):
     minimal_length: int
     Returns
     -------
-     waveform: torch.Tensor
+    waveform: torch.Tensor
         Padded waveform
-
     """
     length_signal = waveform.shape[1]
     if length_signal < minimal_length:
