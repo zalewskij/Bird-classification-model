@@ -9,8 +9,18 @@ from birdclassification.preprocessing.utils import mix_down, right_pad
 from birdclassification.preprocessing.utils import timer
 from noisereduce.torchgate import TorchGate as TG
 
+
 class PreprocessingPipeline(torch.nn.Module):
+    """
+        Pipeline for preprocessing the recordings
+    """
     def __init__(self, noises_dir):
+        """
+        Parameters
+        ----------
+        noises_dir: string
+            Path to a directory with environmental noises
+        """
         super().__init__()
 
         self.parameters = {
@@ -54,11 +64,23 @@ class PreprocessingPipeline(torch.nn.Module):
         self.right_pad = right_pad
 
     def save(self, filepath):
+        """
+        Parameters
+        ----------
+        filepath
+            Path to save the class instance
+        """
         file = open(filepath, 'wb')
         pickle.dump(self, file)
         file.close()
 
     def load(self, filepath):
+        """
+        Parameters
+        ----------
+        filepath
+            Path from where to load the class instance
+        """
         file = open(filepath, 'rb')
         element = pickle.load(file)
         file.close()
@@ -66,6 +88,17 @@ class PreprocessingPipeline(torch.nn.Module):
 
     # @timer
     def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        waveform: torch.Tensor
+            Sound signal
+
+        Returns
+        -------
+        audio: torch.Tensor
+            Preprocessed audio in form of a spectrogram
+        """
         waveform = self.mix_down(waveform)
         waveform = self.right_pad(waveform, minimal_length=self.parameters['sample_length'] * self.parameters['sr'])
 
