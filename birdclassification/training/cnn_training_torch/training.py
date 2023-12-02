@@ -97,7 +97,7 @@ for epoch in range(EPOCHS):
     print("#############################################################")
     print("Epoch results:")
     print(f'Loss train {avg_loss} valid loss: {avg_vloss}')
-    validation_precision_score = calculate_metric(cnn, val_dl, metric=precision_score)
+    validation_precision_score = calculate_metric(cnn, val_dl, metric=lambda x, y: precision_score(x, y, average='macro'))
     print(f'Validation macro avarage precision: {validation_precision_score}')
     print(f'Epoch execution time {time() - epoch_start_time}')
     print("#############################################################\n\n")
