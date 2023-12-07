@@ -24,11 +24,10 @@ SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
 RECORDINGS_DIR = Path('/mnt/d/recordings_30') # Path("D:\\JAcek\\recordings_30")
 NOISES_DIR = Path('') # Path('D:\\JAcek\\noises_dir')
-WRITER_DIR = Path('logs') # Path("D:\\JAcek\\logs\\", f"cnn_{TIMESTAMP}")
-MODEL_PATH = Path(__file__).resolve().parent / "saved_models" / "cnn_1.pt"
+WRITER_DIR = Path(__file__).resolve().parent / "logs"
+MODEL_PATH = Path(__file__).resolve().parent.parent / "saved_models" / "cnn_1.pt"
 
 SAMPLE_RATE = 32000
-NUM_SAMPLES = SAMPLE_RATE * 1
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 
@@ -68,6 +67,22 @@ writer = SummaryWriter(WRITER_DIR)
 epoch_number = 0
 
 best_vloss = sys.float_info.max
+
+print("--------------------")
+print(f"TIMESTAMP: {TIMESTAMP}")
+print(f"DEVICE: {DEVICE}")
+print(f"SEED: {SEED}")
+print(f"BASE_PATH: {BASE_PATH}")
+print(f"RECORDINGS_DIR: {RECORDINGS_DIR}")
+print(f"NOISES_DIR: {NOISES_DIR}")
+print(f"WRITER_DIR: {WRITER_DIR}")
+print(f"MODEL_PATH: {MODEL_PATH}")
+print(f"SAMPLE_RATE: {SAMPLE_RATE}")
+print(f"BATCH_SIZE: {BATCH_SIZE}")
+print(f"NUM_WORKERS: {NUM_WORKERS}")
+print(f"LEARNING_RATE: {LEARNING_RATE}")
+print(f"EPOCHS: {EPOCHS}")
+print("--------------------")
 
 start_time = time()
 

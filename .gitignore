@@ -2,4 +2,4 @@ __pycache__/
 *.egg-info/
 xeno_canto_recordings.csv
 logs
-training/saved_models/*
+saved_models
