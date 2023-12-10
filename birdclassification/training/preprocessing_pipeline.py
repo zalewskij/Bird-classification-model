@@ -14,7 +14,7 @@ class PreprocessingPipeline(torch.nn.Module):
     """
         Pipeline for preprocessing the recordings
     """
-    def __init__(self, noises_df, noises_dir):
+    def __init__(self, noises_df=None, noises_dir=''):
         """
         Parameters
         ----------

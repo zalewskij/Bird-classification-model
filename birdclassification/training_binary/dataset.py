@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class BinaryDataset(Dataset):
-    def __init__(self, df, not_bird_dir, bird_dir, noises_dir, sample_rate=32000, device="cpu"):
+    def __init__(self, df, not_bird_dir, bird_dir, noises_df=None,  noises_dir='', sample_rate=32000, device="cpu"):
         df['filepath'] = df.apply(lambda x: Path(bird_dir, x['folder'], f"{str(x['filename'])}.mp3")
                                   if x['isBird'] == 1 else Path(not_bird_dir, x['folder'], f"{str(x['filename'])}.ogg"),
                                   axis=1)
@@ -16,7 +16,7 @@ class BinaryDataset(Dataset):
         self.filepath = df['filepath'].to_numpy()
         self.label = df['isBird'].to_numpy()
         self.device = device
-        self.preprocessing_pipeline = PreprocessingPipeline(noises_df=None, noises_dir=noises_dir).to(device)
+        self.preprocessing_pipeline = PreprocessingPipeline(noises_df=noises_df, noises_dir=noises_dir).to(device)
 
     def __len__(self):
         """

@@ -10,7 +10,7 @@ class AddBackgroundNoise(torch.nn.Module):
        Adds another audio to the signal
     """
 
-    def __init__(self, min_factor, max_factor, df, noises_dir):
+    def __init__(self, min_factor, max_factor, df=None, noises_dir=''):
         """
         Parameters
         ----------
@@ -24,7 +24,8 @@ class AddBackgroundNoise(torch.nn.Module):
         super().__init__()
         self.min = min_factor
         self.max = max_factor
-        self.noises = NoisesDataset(df=df, recordings__dir=noises_dir)
+        self.noises = NoisesDataset(df=df, recordings__dir=noises_dir) if noises_dir != '' and df is not None else None
+
 
     def forward(self, waveform: torch.Tensor):
         """
@@ -38,8 +39,10 @@ class AddBackgroundNoise(torch.nn.Module):
         torch.Tensor
             Signal with background noise added
         """
-        noise_factor = random.uniform(self.min, self.max)
+        if self.noises is None:
+            return waveform
 
+        noise_factor = random.uniform(self.min, self.max)
         n = random.randint(0, self.noises.__len__())
         noise = self.noises[n]
         if noise.size()[1] < waveform.size()[1]:

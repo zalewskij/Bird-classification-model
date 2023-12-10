@@ -6,8 +6,9 @@ from birdclassification.preprocessing.utils import timer
 from birdclassification.visualization.plots import plot_torch_spectrogram, plot_torch_waveform
 from pathlib import Path
 
+
 class Recordings30(Dataset):
-    def __init__(self, df, recording_dir, noises_df, noises_dir, sample_rate=32000, device="cpu"):
+    def __init__(self, df, recording_dir, noises_df=None, noises_dir='', sample_rate=32000, device="cpu"):
         """
         Parameters
         ----------
@@ -24,7 +25,7 @@ class Recordings30(Dataset):
             cpu or cuda depending on the used device
         """
         df['filepath'] = df.apply(lambda x: Path(recording_dir, x['Latin name'], f"{str(x['id'])}.mp3"), axis=1)
-        #df['filepath'] = df.apply(lambda x: f"{recording_dir}{x['Latin name']}/{str(x['id'])}.mp3", axis=1)
+        # df['filepath'] = df.apply(lambda x: f"{recording_dir}{x['Latin name']}/{str(x['id'])}.mp3", axis=1)
         le = LabelEncoder()
         df['label'] = le.fit_transform(df['Latin name'])
 
@@ -104,5 +105,3 @@ class Recordings30(Dataset):
             print("Label: ", self.get_mapping()[label])
             plot_torch_waveform(audio, sr)
             plot_torch_spectrogram(audio)
-
-
