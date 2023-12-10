@@ -26,7 +26,7 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn,
     last_loss = 0.
 
     for i, data in enumerate(training_loader):
-        inputs, labels = data
+        inputs, labels = data[0].to(device), data[1].to(device)
         inputs = torch.unsqueeze(inputs, dim=1)
         #labels = labels.to(torch.int64)
 
@@ -34,10 +34,10 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn,
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs.to(device))
+        outputs = model(inputs)
 
         # Compute the loss and its gradients
-        loss = loss_fn(outputs.to(device), labels.long().to(device))
+        loss = loss_fn(outputs, labels)
         loss.backward()
 
         # Adjust learning weights

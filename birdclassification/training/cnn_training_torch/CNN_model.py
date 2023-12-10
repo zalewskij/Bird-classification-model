@@ -50,9 +50,15 @@ class CNNNetwork(nn.Module):
             nn.MaxPool2d(kernel_size=2)
         )
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(
-            10880, 30
+
+        self.linear1 = nn.Sequential(
+            nn.Linear(
+                10880, 2
+            )
         )
+        # self.linear2 = nn.Linear(
+        #     1024, 1
+        # )
 
     def forward(self, input_data):
         x = self.conv1(input_data)
@@ -60,5 +66,6 @@ class CNNNetwork(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.flatten(x)
-        logits = self.linear(x)
+        logits = self.linear1(x)
+        #logits = self.linear2(x)
         return logits
