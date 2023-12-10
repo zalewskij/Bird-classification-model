@@ -14,7 +14,7 @@ class PreprocessingPipeline(torch.nn.Module):
     """
         Pipeline for preprocessing the recordings
     """
-    def __init__(self, noises_dir):
+    def __init__(self, noises_df, noises_dir):
         """
         Parameters
         ----------
@@ -49,7 +49,7 @@ class PreprocessingPipeline(torch.nn.Module):
         #     AddWhiteNoise(min_factor=self.parameters['white_noise_min'], max_factor=self.parameters['white_noise_max']),
         #     RandomGain(min_factor=self.parameters['random_gain_min'], max_factor=self.parameters['random_gain_max']),
         #     TimeShift(min_factor=self.parameters['time_shift_min'], max_factor=self.parameters['time_shift_max']),
-        #     AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], noises_dir=noises_dir),
+        #     AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], df=noises_df, noises_dir=noises_dir),
         #     PitchShifting(sr=self.parameters['sr'], min_semitones=self.parameters['pitch_shift_min'], max_semitones=self.parameters['pitch_shift_max'])]
 
         self.augmentations = []

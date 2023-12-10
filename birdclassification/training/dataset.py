@@ -7,7 +7,7 @@ from birdclassification.visualization.plots import plot_torch_spectrogram, plot_
 from pathlib import Path
 
 class Recordings30(Dataset):
-    def __init__(self, df, recording_dir, noises_dir, sample_rate=32000, device="cpu"):
+    def __init__(self, df, recording_dir, noises_df, noises_dir, sample_rate=32000, device="cpu"):
         """
         Parameters
         ----------
@@ -15,8 +15,10 @@ class Recordings30(Dataset):
             dataframe of recordings
         recording_dir: str
             filepath to the directory with recordings
-        noises_dir: pd.DataFrame
+        noises_df: pd.DataFrame
             dataframe of noises
+        noises_dir: str
+            filepath to the directory with noises
         sample_rate: int
         device: str
             cpu or cuda depending on the used device
@@ -31,7 +33,7 @@ class Recordings30(Dataset):
         self.label = df['label'].to_numpy()
         self.device = device
         self.recording_dir = recording_dir
-        self.preprocessing_pipeline = PreprocessingPipeline(noises_dir).to(device)
+        self.preprocessing_pipeline = PreprocessingPipeline(noises_df, noises_dir).to(device)
         self.le_name_mapping = dict(zip(le.transform(le.classes_), le.classes_))
 
     def __len__(self):

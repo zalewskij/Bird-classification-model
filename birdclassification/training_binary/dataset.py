@@ -16,7 +16,7 @@ class BinaryDataset(Dataset):
         self.filepath = df['filepath'].to_numpy()
         self.label = df['isBird'].to_numpy()
         self.device = device
-        self.preprocessing_pipeline = PreprocessingPipeline(noises_dir).to(device)
+        self.preprocessing_pipeline = PreprocessingPipeline(noises_df=None, noises_dir=noises_dir).to(device)
 
     def __len__(self):
         """

@@ -1,62 +1,16 @@
 import math
-import os
 import random
 import torch
-import torchaudio
+from birdclassification.preprocessing.noises_dataset import NoisesDataset
 from torchaudio.functional import pitch_shift, bandpass_biquad
-from torch.utils.data import Dataset
-from torchaudio.transforms import Resample
-
-
-class BackgroundNoises(Dataset):
-    """
-        Dataset for background noises recordings
-    """
-    def __init__(self, noises_dir):
-        """
-        Parameters
-        ----------
-        noises_dir: string
-            Path to a directory with environmental noises
-        """
-        self.recording_dir = noises_dir
-        self.noises = os.listdir(self.recording_dir)
-        self.target_sr = 32000
-
-    def __len__(self):
-        """
-        Returns
-        -------
-        int
-            Size of the dataset
-        """
-        return len(self.noises)
-
-    def __getitem__(self, idx):
-        """
-        Parameters
-        ----------
-        idx: int
-            Index of the recording
-
-        Returns
-        -------
-        audio: torch.Tensor
-            Recording waveform
-        """
-        file = os.path.join(self.recording_dir, self.noises[idx])
-        audio, sr = torchaudio.load(file)
-        if sr != self.target_sr:
-            resampler = Resample(orig_freq=sr, new_freq=self.target_sr)
-            audio = resampler(audio)
-        return audio
 
 
 class AddBackgroundNoise(torch.nn.Module):
     """
        Adds another audio to the signal
     """
-    def __init__(self, min_factor, max_factor, noises_dir):
+
+    def __init__(self, min_factor, max_factor, df, noises_dir):
         """
         Parameters
         ----------
@@ -70,7 +24,7 @@ class AddBackgroundNoise(torch.nn.Module):
         super().__init__()
         self.min = min_factor
         self.max = max_factor
-        self.noises = BackgroundNoises(noises_dir)
+        self.noises = NoisesDataset(df=df, recordings__dir=noises_dir)
 
     def forward(self, waveform: torch.Tensor):
         """
@@ -100,6 +54,7 @@ class InvertPolarity(torch.nn.Module):
     """
     Inverts the polarity of the signal
     """
+
     def __init__(self):
         super().__init__()
 
@@ -122,6 +77,7 @@ class AddWhiteNoise(torch.nn.Module):
     """
     Add gaussian/white noise to the signal
     """
+
     def __init__(self, min_factor, max_factor):
         """
         Parameters
@@ -159,6 +115,7 @@ class PitchShifting(torch.nn.Module):
     """
     Changes the pitch of the signal
     """
+
     def __init__(self, sr, min_semitones, max_semitones):
         """
         Parameters
@@ -195,6 +152,7 @@ class RandomGain(torch.nn.Module):
     """
     Scales the amplitude of the signal
     """
+
     def __init__(self, min_factor, max_factor):
         """
         Parameters
@@ -229,6 +187,7 @@ class TimeShift(torch.nn.Module):
     """
     Shifts the audio in time
     """
+
     def __init__(self, min_factor, max_factor):
         """
         Parameters
@@ -266,6 +225,7 @@ class BandPass(torch.nn.Module):
     """
     BandPass biquad filter
     """
+
     def __init__(self, sr, central_freq, Q=0.707):
         """
         Parameters
@@ -303,6 +263,7 @@ class RandomChunk(torch.nn.Module):
     """
     Obtains a random part of the signal
     """
+
     def __init__(self, sr, min_factor, max_factor):
         """
         Parameters

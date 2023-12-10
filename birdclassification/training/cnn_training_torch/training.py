@@ -1,3 +1,4 @@
+import pandas as pd
 from birdclassification.preprocessing.filtering import filter_recordings_30
 from birdclassification.training.dataset import Recordings30
 from birdclassification.training.cnn_training_torch.CNN_model import CNNNetwork
@@ -35,13 +36,14 @@ LEARNING_RATE = 0.0001
 EPOCHS = 5
 
 df = filter_recordings_30(BASE_PATH / "data" / "xeno_canto_recordings.csv", BASE_PATH / "data" / "bird-list-extended.csv")
+noises_df = pd.read_csv("")
 
 train_df, test_val_df = train_test_split(df, stratify=df['Latin name'], test_size=0.2, random_state = SEED)
 val_df, test_df = train_test_split(test_val_df, stratify=test_val_df['Latin name'], test_size=0.5, random_state = SEED)
 
-train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, noises_dir=NOISES_DIR, sample_rate=SAMPLE_RATE, device = DEVICE)
-val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, noises_dir=NOISES_DIR, sample_rate = 32000, device = DEVICE)
-test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, noises_dir=NOISES_DIR,sample_rate = 32000,device = DEVICE)
+train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate=SAMPLE_RATE, device = DEVICE)
+val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate = 32000, device = DEVICE)
+test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR,sample_rate = 32000,device = DEVICE)
 
 train_dl  = DataLoader(train_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 val_dl  = DataLoader(val_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
