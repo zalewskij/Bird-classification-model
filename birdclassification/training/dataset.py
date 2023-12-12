@@ -83,3 +83,7 @@ class BinaryDataset(Dataset):
             plot_torch_waveform(audio, sr)
             plot_torch_spectrogram(audio)
             print("-------------------------------------------------------------")
+
+    def get_mapping(self):
+        return dict(zip([1,0], ['bird', 'not_bird']))
+
