@@ -3,11 +3,12 @@ import random
 from birdclassification.preprocessing.augmentations import InvertPolarity, AddWhiteNoise, PitchShifting, RandomGain, \
     TimeShift, AddBackgroundNoise, BandPass
 from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram
-from birdclassification.preprocessing.utils import get_loudest_index, cut_around_index
+from birdclassification.preprocessing.utils import get_loudest_index, cut_around_index, get_thresholded_fragments
 import pickle
 from birdclassification.preprocessing.utils import mix_down, right_pad
 from birdclassification.preprocessing.utils import timer
 from noisereduce.torchgate import TorchGate as TG
+import random
 
 
 class PreprocessingPipeline(torch.nn.Module):
@@ -58,6 +59,7 @@ class PreprocessingPipeline(torch.nn.Module):
         self.noise_reduction = TG(sr=self.parameters['sr'], nonstationary=False)
 
         self.get_spectrogram = generate_mel_spectrogram
+        self.get_thresholded_fragments = get_thresholded_fragments
         self.get_loudest_index = get_loudest_index
         self.cut_around_largest_index = cut_around_index
         self.mix_down = mix_down
@@ -103,8 +105,12 @@ class PreprocessingPipeline(torch.nn.Module):
         waveform = self.right_pad(waveform, minimal_length=self.parameters['sample_length'] * self.parameters['sr'])
 
         # select loudest 3 second chunk
-        peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
-        waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
+        # peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
+        # waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
+
+        #select random 3 second chunk from the loudest ones
+        waveform = random.choice(self.get_thresholded_fragments(waveform, self.parameters['sr'], self.parameters['n_fft'],
+                                           self.parameters['hop_length'], sample_length=self.parameters['sample_length'], threshold=0.7))
 
         # augmentations
         if self.augmentations:

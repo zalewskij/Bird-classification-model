@@ -178,7 +178,7 @@ def get_thresholded_fragments_librosa(y, sr, n_fft, hop_length, sample_length, t
     return [y[left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
 
 
-def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold):
+def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold = 0.7):
     """
     Selects the fragments of a given length from the signal, based on their loudness
     Parameters
