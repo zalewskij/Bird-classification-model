@@ -74,3 +74,24 @@ def filter_recordings_30(filepath_recordings='../data/xeno_canto_recordings.csv'
     recordings_30 = recordings[recordings["Latin name"].isin(species_30["Latin name"])].reset_index()
     recordings_30 = recordings_30[~recordings_30['id'].isin(recordings_to_remove)].reset_index()
     return recordings_30
+
+
+def filter_recordings_287(filepath_recordings='../data/xeno_canto_recordings.csv',
+                         filepath_bird_list='../data/bird-list-extended.csv', on_list = 1):
+    """
+    Based on scipts/data/bird-list-extended a function filter a subset of 287 species (all species of interest in Poland)
+
+    Returns
+    -------
+    recordings_287: pandas.DataFrame
+        Recordings of chosen 287 bird species
+    """
+    recordings_to_remove = [818118]
+    df = pd.read_csv(filepath_bird_list, delimiter=";")
+    species_287 = df[df["Chosen"] == on_list]
+    print(len(species_287.index))
+    recordings = pd.read_csv(filepath_recordings)
+    recordings['Latin name'] = recordings.gen + " " + recordings.sp
+    recordings_287 = recordings[recordings["Latin name"].isin(species_287["Latin name"])].reset_index()
+    recordings_287 = recordings_287[~recordings_287['id'].isin(recordings_to_remove)].reset_index()
+    return recordings_287

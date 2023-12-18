@@ -2,21 +2,28 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pydub import AudioSegment
 
-DIR = '/Users/zosia/Desktop/Test1/'
+DIR = '/media/jacek/E753-A120/xeno-canto-splitted'
 EXTENSION = ".ogg"
-OUTPUTDIR = '/Users/zosia/Desktop/Test2/'
-files = os.listdir(DIR)
+OUTPUTDIR = '/media/jacek/E753-A120/xeno-canto-splitted-converted'
+filepath_list = []
 
-def convert(file):
-    filepath = os.path.join(DIR, file)
-    outputpath = os.path.join(OUTPUTDIR, file)
+for path, subdirs, files in os.walk(DIR):
+    for name in files:
+        filepath_list.append(os.path.join(path, name))
+
+filepath_list = filepath_list[50000:75000]
+print(len(filepath_list))
+
+
+def convert(filepath):
+    output_filepath = filepath.replace('xeno-canto-splitted', 'xeno-canto-splitted-converted')
     try:
         sound = AudioSegment.from_file(filepath)
         sound = sound.set_frame_rate(32000)
-        sound.export(outputpath, format="ogg")
+        sound.export(output_filepath, format="ogg")
     except Exception as error:
-        print("ERROR")
+        print("ERROR: ", filepath)
 
 
 with ThreadPoolExecutor() as executor:
-    results = executor.map(convert, files)
+    results = executor.map(convert, filepath_list)
