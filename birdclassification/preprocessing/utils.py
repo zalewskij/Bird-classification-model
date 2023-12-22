@@ -205,6 +205,11 @@ def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold
     sample_length_for_rms = int(sample_length * sr / hop_length)
 
     best_sample_start_rms = peak_rms_index - int(sample_length_for_rms / 2)
+    if best_sample_start_rms < 0:
+        best_sample_start_rms = 0
+    elif peak_rms_index + sample_length_for_rms > len(clip_rms):
+        best_sample_start_rms = len(clip_rms) - sample_length_for_rms
+
     start = best_sample_start_rms - int(best_sample_start_rms / sample_length_for_rms) * sample_length_for_rms
     number_of_potential_samples = int((len(clip_rms) - start) / sample_length_for_rms)
 

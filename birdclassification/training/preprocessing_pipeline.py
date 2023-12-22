@@ -15,7 +15,7 @@ class PreprocessingPipeline(torch.nn.Module):
     """
         Pipeline for preprocessing the recordings
     """
-    def __init__(self, noises_df=None, noises_dir=''):
+    def __init__(self, noises_df=None, noises_dir='', random_fragment=False):
         """
         Parameters
         ----------
@@ -42,7 +42,8 @@ class PreprocessingPipeline(torch.nn.Module):
             'number_of_bands': 64,
             'fmin': 150,
             'fmax': 15000,
-            'central_freq': 10000
+            'central_freq': 10000,
+            'random_fragment': random_fragment 
         }
 
         # self.augmentations = [
@@ -104,13 +105,14 @@ class PreprocessingPipeline(torch.nn.Module):
         waveform = self.mix_down(waveform)
         waveform = self.right_pad(waveform, minimal_length=self.parameters['sample_length'] * self.parameters['sr'])
 
-        # select loudest 3 second chunk
-        # peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
-        # waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
-
-        #select random 3 second chunk from the loudest ones
-        waveform = random.choice(self.get_thresholded_fragments(waveform, self.parameters['sr'], self.parameters['n_fft'],
-                                           self.parameters['hop_length'], sample_length=self.parameters['sample_length'], threshold=0.7))
+        if self.parameters['random_fragment']:
+            #select random 3 second chunk from the loudest ones
+            waveform = random.choice(self.get_thresholded_fragments(waveform, self.parameters['sr'], self.parameters['n_fft'],
+                                            self.parameters['hop_length'], sample_length=self.parameters['sample_length'], threshold=0.7))
+        else:
+            # select loudest 3 second chunk
+            peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
+            waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
 
         # augmentations
         if self.augmentations:

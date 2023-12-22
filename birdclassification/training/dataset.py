@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class Recordings30(Dataset):
-    def __init__(self, df, recording_dir, noises_df=None, noises_dir='', sample_rate=32000, device="cpu"):
+    def __init__(self, df, recording_dir, noises_df=None, noises_dir='', sample_rate=32000, device="cpu", random_fragment=False):
         """
         Parameters
         ----------
@@ -34,7 +34,7 @@ class Recordings30(Dataset):
         self.label = df['label'].to_numpy()
         self.device = device
         self.recording_dir = recording_dir
-        self.preprocessing_pipeline = PreprocessingPipeline(noises_df, noises_dir).to(device)
+        self.preprocessing_pipeline = PreprocessingPipeline(noises_df, noises_dir, random_fragment=random_fragment).to(device)
         self.le_name_mapping = dict(zip(le.transform(le.classes_), le.classes_))
 
     def __len__(self):
