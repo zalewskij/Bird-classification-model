@@ -218,7 +218,9 @@ def get_thresholded_fragments(y, sr, n_fft, hop_length, sample_length, threshold
     loudness_threshold = threshold * clip_rms[peak_rms_index]
     samples = [x for x in potential_samples if clip_rms[x:x + sample_length_for_rms].max() > loudness_threshold]
 
-    chosen_indexes = [i * hop_length + int(n_fft / 2) for i in samples]
+    chosen_indexes = [i * hop_length for i in samples]
+    chosen_indexes = [y.shape[1] - (sample_length * sr) if i + (sample_length * sr) > y.shape[1] else i for i in chosen_indexes]
+
     return [y[:, left_index:left_index + (sample_length * sr)] for left_index in chosen_indexes]
 
 
