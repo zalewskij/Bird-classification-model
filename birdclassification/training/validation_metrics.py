@@ -38,3 +38,35 @@ def calculate_metric(model, val_loader, device, metric = None):
             true_labels = torch.cat((true_labels, labels.to(device)))
 
     return metric(true_labels.cpu(), predicted_labels.cpu())
+
+
+def get_true_and_predicted_labels(model, val_loader, device):
+    """
+    Get true and predicted labels
+
+    Parameters
+    ----------
+    model: nn.Module
+        model used to predict labels
+    val_loader: torch.utils.data.DataLoader
+        DataLoader used to calculate validation score
+
+
+    Returns
+    -------
+    true_labels, predicted_labels: torch.Tensor, torch.Tensor
+    """
+
+    model.to(device)
+    model.eval()
+    true_labels = torch.Tensor().to(device)
+    predicted_labels = torch.Tensor().to(device)
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images = torch.unsqueeze(images, dim=1)
+            validation_output = model(images.to(device))
+            predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
+            predicted_labels = torch.cat((predicted_labels, predictions))
+            true_labels = torch.cat((true_labels, labels.to(device)))
+
+    return true_labels.cpu(), predicted_labels.cpu()
