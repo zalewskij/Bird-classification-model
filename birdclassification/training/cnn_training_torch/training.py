@@ -24,24 +24,25 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
 RECORDINGS_DIR = Path('/mnt/d/recordings_30') # Path("D:\\JAcek\\recordings_30")
+RECORDINGS_DIR = Path('/media/jacek/E753-A120/recordings_30')
 NOISES_DIR = Path('') # Path('D:\\JAcek\\noises_dir')
 WRITER_DIR = Path(__file__).resolve().parent / "logs"
-MODEL_PATH = Path(__file__).resolve().parent.parent / "saved_models" / "cnn_1.pt"
+MODEL_PATH = Path(__file__).resolve().parent / "saved_models" / "cnn_1.pt"
 
 SAMPLE_RATE = 32000
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 
 LEARNING_RATE = 0.0001
-EPOCHS = 5
+EPOCHS = 20
 
 df = filter_recordings_30(BASE_PATH / "data" / "xeno_canto_recordings.csv", BASE_PATH / "data" / "bird-list-extended.csv")
-noises_df = pd.read_csv("")
+noises_df = None
 
 train_df, test_val_df = train_test_split(df, stratify=df['Latin name'], test_size=0.2, random_state = SEED)
 val_df, test_df = train_test_split(test_val_df, stratify=test_val_df['Latin name'], test_size=0.5, random_state = SEED)
 
-train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate=SAMPLE_RATE, device = DEVICE)
+train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate=SAMPLE_RATE, device = DEVICE, random_fragment=True)
 val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate = 32000, device = DEVICE)
 test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR,sample_rate = 32000,device = DEVICE)
 
@@ -114,7 +115,7 @@ for epoch in range(EPOCHS):
     print("#############################################################")
     print("Epoch results:")
     print(f'Loss train {avg_loss} valid loss: {avg_vloss}')
-    validation_precision_score = calculate_metric(cnn, val_dl, metric=lambda x, y: precision_score(x, y, average='macro'))
+    validation_precision_score = calculate_metric(cnn, val_dl, device=DEVICE, metric=lambda x, y: precision_score(x, y, average='macro'))
     print(f'Validation macro avarage precision: {validation_precision_score}')
     print(f'Epoch execution time {time() - epoch_start_time}')
     print("#############################################################\n\n")
@@ -133,10 +134,10 @@ for epoch in range(EPOCHS):
     writer.flush()
     
     # Track best performance, and save the model's state
-    if avg_vloss < best_vloss:
-        best_vloss = avg_vloss
-        model_path = f'model_{TIMESTAMP}_{epoch_number}'
-        torch.save(cnn.state_dict(), model_path)
+    # if avg_vloss < best_vloss:
+    best_vloss = avg_vloss
+    model_path = f'model_{TIMESTAMP}_{epoch_number}'
+    torch.save(cnn.state_dict(), model_path)
     
     epoch_number += 1
 
