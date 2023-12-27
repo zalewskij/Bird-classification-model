@@ -11,7 +11,7 @@ for path, subdirs, files in os.walk(DIR):
     for name in files:
         filepath_list.append(os.path.join(path, name))
 
-filepath_list = filepath_list[50000:75000]
+filepath_list = filepath_list[250000:275000]
 print(len(filepath_list))
 
 
@@ -25,5 +25,5 @@ def convert(filepath):
         print("ERROR: ", filepath)
 
 
-with ThreadPoolExecutor() as executor:
+with ThreadPoolExecutor(max_workers = 4) as executor:
     results = executor.map(convert, filepath_list)
