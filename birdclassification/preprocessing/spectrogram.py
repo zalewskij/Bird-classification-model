@@ -5,6 +5,26 @@ import torchaudio
 from .utils import *
 
 
+class ShiftSpectrogram(torch.nn.Module):
+  def __init__(self):
+    super().__init__()
+
+  def forward(self, x):
+    x = torch.squeeze(x, 1)
+    maximum = torch.amax(x, dim=(1,2))
+    return (x - maximum[:, None, None])
+
+
+def generate_mel_spectrogram_seq(y, sr, n_fft, hop_length, number_of_bands = 64, fmin = 150, fmax = 15000, device = 'cpu'):
+    T2 = torch.nn.Sequential(
+        torchaudio.transforms.MelSpectrogram(sample_rate=sr, n_fft=n_fft, hop_length=hop_length, f_min=fmin, f_max=fmax, n_mels=number_of_bands),
+        torchaudio.transforms.AmplitudeToDB(top_db=80),
+        ShiftSpectrogram()
+    )
+    T2.to(device)
+    return T2(y)
+
+
 def generate_mel_spectrogram(y, sr, n_fft, hop_length, number_of_bands = 64, fmin = 150, fmax = 15000):
     """
     Generates mel spectrogram for a given signal

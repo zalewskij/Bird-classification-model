@@ -121,7 +121,4 @@ class PreprocessingPipeline(torch.nn.Module):
             aug = torch.nn.Sequential(*selected)
             waveform = aug(waveform)
 
-        # generate spectrogram
-        spectrogram = self.get_spectrogram(waveform, self.parameters['sr'], self.parameters['n_fft'],
-                                           self.parameters['hop_length'])
-        return spectrogram
+        return waveform
