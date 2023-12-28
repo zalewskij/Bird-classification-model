@@ -1,3 +1,4 @@
+from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram_seq
 import pandas as pd
 from birdclassification.preprocessing.filtering import filter_recordings_30
 from birdclassification.training.dataset import Recordings30
@@ -24,7 +25,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
 RECORDINGS_DIR = Path('/mnt/d/recordings_30') # Path("D:\\JAcek\\recordings_30")
-RECORDINGS_DIR = Path('/media/jacek/E753-A120/recordings_30')
+# RECORDINGS_DIR = Path('/media/jacek/E753-A120/recordings_30')
 NOISES_DIR = Path('') # Path('D:\\JAcek\\noises_dir')
 WRITER_DIR = Path(__file__).resolve().parent / "logs"
 MODEL_PATH = Path(__file__).resolve().parent / "saved_models" / "cnn_1.pt"
@@ -106,7 +107,8 @@ for epoch in range(EPOCHS):
     with torch.no_grad():
         for i, vdata in enumerate(val_dl):
             vinputs, vlabels = vdata
-            vinputs = torch.unsqueeze(vinputs, dim=1).to(DEVICE)
+            vinputs = generate_mel_spectrogram_seq(y=vinputs.to(DEVICE), sr=32000, n_fft=512, hop_length=384, device=DEVICE)
+            vinputs = torch.unsqueeze(vinputs, dim=1)
             voutputs = cnn(vinputs)
             vloss = loss_fn(voutputs, vlabels.to(DEVICE))
             running_vloss += vloss
@@ -137,7 +139,7 @@ for epoch in range(EPOCHS):
     # if avg_vloss < best_vloss:
     best_vloss = avg_vloss
     model_path = f'model_{TIMESTAMP}_{epoch_number}'
-    torch.save(cnn.state_dict(), model_path)
+    torch.save(cnn.state_dict(), MODEL_PATH.parent / model_path)
     
     epoch_number += 1
 

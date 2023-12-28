@@ -1,3 +1,4 @@
+from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram_seq
 import torch
 from sklearn.metrics import balanced_accuracy_score, accuracy_score, confusion_matrix, classification_report
 
@@ -30,9 +31,10 @@ def calculate_metric(model, val_loader, device, metric = None):
     true_labels = torch.Tensor().to(device)
     predicted_labels = torch.Tensor().to(device)
     with torch.no_grad():
-        for images, labels in val_loader:
-            images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images.to(device))
+        for input, labels in val_loader:
+            spectrogram = generate_mel_spectrogram_seq(y=input.to(device), sr=32000, n_fft=512, hop_length=384, device=device)
+            spectrogram = torch.unsqueeze(spectrogram, dim=1)
+            validation_output = model(spectrogram.to(device))
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels.to(device)))
@@ -62,9 +64,10 @@ def get_true_and_predicted_labels(model, val_loader, device):
     true_labels = torch.Tensor().to(device)
     predicted_labels = torch.Tensor().to(device)
     with torch.no_grad():
-        for images, labels in val_loader:
-            images = torch.unsqueeze(images, dim=1)
-            validation_output = model(images.to(device))
+        for input, labels in val_loader:
+            spectrogram = generate_mel_spectrogram_seq(y=input.to(device), sr=32000, n_fft=512, hop_length=384, device=device)
+            spectrogram = torch.unsqueeze(spectrogram, dim=1)
+            validation_output = model(spectrogram.to(device))
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels.to(device)))
