@@ -60,7 +60,7 @@ def plot_selected_waveform(x, sr, start_stop):
     ipd.display(ipd.Audio(data=x, rate=sr))
 
 
-def plot_torch_spectrogram(spectrogram, title=None, ylabel="freq_bin", ax=None):
+def plot_torch_spectrogram(spectrogram, title=None, ylabel="Frequency", xlabel ="Time", ax=None):
     """
     Plot a spectrogram
     Parameters
@@ -70,6 +70,7 @@ def plot_torch_spectrogram(spectrogram, title=None, ylabel="freq_bin", ax=None):
     title: str
         Title of the plot
     ylabel: str
+    xlabel: str
     ax: matplotlib.axes
         Optional axes to be used to plot
 
@@ -81,7 +82,8 @@ def plot_torch_spectrogram(spectrogram, title=None, ylabel="freq_bin", ax=None):
         _, ax = plt.subplots(1, 1)
     if title is not None:
         ax.set_title(title)
-    ax.set_ylabel(ylabel)
+    ax.set_ylabel(ylabel, fontsize=15)
+    ax.set_xlabel(xlabel, fontsize=15)
     ax.imshow(spectrogram, origin="lower", aspect="auto", interpolation="nearest")
 
 
