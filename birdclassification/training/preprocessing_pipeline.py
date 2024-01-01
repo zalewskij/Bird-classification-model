@@ -44,12 +44,13 @@ class PreprocessingPipeline(torch.nn.Module):
         }
 
         # self.augmentations = [
-        #     InvertPolarity(),
-        #     AddWhiteNoise(min_factor=self.parameters['white_noise_min'], max_factor=self.parameters['white_noise_max']),
-        #     RandomGain(min_factor=self.parameters['random_gain_min'], max_factor=self.parameters['random_gain_max']),
-        #     TimeShift(min_factor=self.parameters['time_shift_min'], max_factor=self.parameters['time_shift_max']),
-        #     AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], df=noises_df, noises_dir=noises_dir),
-        #     PitchShifting(sr=self.parameters['sr'], min_semitones=self.parameters['pitch_shift_min'], max_semitones=self.parameters['pitch_shift_max'])]
+        #     InvertPolarity().to(device),
+        #     AddWhiteNoise(min_factor=self.parameters['white_noise_min'], max_factor=self.parameters['white_noise_max'], device=device).to(device),
+        #     RandomGain(min_factor=self.parameters['random_gain_min'], max_factor=self.parameters['random_gain_max']).to(device),
+        #     TimeShift(min_factor=self.parameters['time_shift_min'], max_factor=self.parameters['time_shift_max']).to(device),
+        #     AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], df=noises_df, noises_dir=noises_dir).to(device),
+        #     # PitchShifting(sr=self.parameters['sr'], hop_length=self.parameters['hop_length'], n_fft=self.parameters['n_fft'], min_semitones=self.parameters['pitch_shift_min'], max_semitones=self.parameters['pitch_shift_max'])
+        # ]
 
         self.device = device
 

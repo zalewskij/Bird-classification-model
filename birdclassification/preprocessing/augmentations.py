@@ -81,7 +81,7 @@ class AddWhiteNoise(torch.nn.Module):
     Add gaussian/white noise to the signal
     """
 
-    def __init__(self, min_factor, max_factor):
+    def __init__(self, min_factor, max_factor, device = 'cpu'):
         """
         Parameters
         ----------
@@ -93,6 +93,7 @@ class AddWhiteNoise(torch.nn.Module):
         super().__init__()
         self.min = min_factor
         self.max = max_factor
+        self.device = device
 
     def forward(self, waveform: torch.Tensor):
         """
@@ -108,7 +109,7 @@ class AddWhiteNoise(torch.nn.Module):
         """
         noise_factor = random.uniform(self.min, self.max)
 
-        noise = torch.normal(0, waveform.std(), waveform.shape)
+        noise = torch.normal(0, waveform.std(), waveform.shape).to(self.device)
         noisy_signal = waveform + noise * noise_factor
 
         return noisy_signal
@@ -119,7 +120,7 @@ class PitchShifting(torch.nn.Module):
     Changes the pitch of the signal
     """
 
-    def __init__(self, sr, min_semitones, max_semitones):
+    def __init__(self, sr, n_fft, hop_length, min_semitones, max_semitones):
         """
         Parameters
         ----------
@@ -134,6 +135,8 @@ class PitchShifting(torch.nn.Module):
         self.min = min_semitones
         self.max = max_semitones
         self.sr = sr
+        self.n_fft = n_fft
+        self.hop_length = hop_length
 
     def forward(self, waveform: torch.Tensor):
         """
@@ -148,7 +151,7 @@ class PitchShifting(torch.nn.Module):
             Altered signal
         """
         n_semitones = random.randint(self.min, self.max)
-        return pitch_shift(waveform=waveform, sample_rate=self.sr, n_steps=n_semitones)
+        return pitch_shift(waveform=waveform, sample_rate=self.sr, n_fft=self.n_fft, hop_length=self.hop_length, n_steps=n_semitones)
 
 
 class RandomGain(torch.nn.Module):
