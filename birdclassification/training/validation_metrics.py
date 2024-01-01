@@ -3,7 +3,7 @@ import torch
 from sklearn.metrics import balanced_accuracy_score, accuracy_score, confusion_matrix, classification_report
 
 
-def calculate_metric(model, val_loader, device, metric = None):
+def calculate_metric(model, val_loader, preprocessing_pipeline, device, metric = None):
     """
     Calculate metric score for DataLoader instance
     (e.g.: macro/micro precision/recall/f1 score)
@@ -26,23 +26,11 @@ def calculate_metric(model, val_loader, device, metric = None):
     Calculated metric: float
     """
 
-    model.to(device)
-    model.eval()
-    true_labels = torch.Tensor().to(device)
-    predicted_labels = torch.Tensor().to(device)
-    with torch.no_grad():
-        for input, labels in val_loader:
-            spectrogram = generate_mel_spectrogram_seq(y=input.to(device), sr=32000, n_fft=512, hop_length=384, device=device)
-            spectrogram = torch.unsqueeze(spectrogram, dim=1)
-            validation_output = model(spectrogram.to(device))
-            predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
-            predicted_labels = torch.cat((predicted_labels, predictions))
-            true_labels = torch.cat((true_labels, labels.to(device)))
-
-    return metric(true_labels.cpu(), predicted_labels.cpu())
+    true_labels, predicted_labels = get_true_and_predicted_labels(model, val_loader, preprocessing_pipeline, device)
+    return metric(true_labels, predicted_labels)
 
 
-def get_true_and_predicted_labels(model, val_loader, device):
+def get_true_and_predicted_labels(model, val_loader, preprocessing_pipeline, device):
     """
     Get true and predicted labels
 
@@ -65,9 +53,8 @@ def get_true_and_predicted_labels(model, val_loader, device):
     predicted_labels = torch.Tensor().to(device)
     with torch.no_grad():
         for input, labels in val_loader:
-            spectrogram = generate_mel_spectrogram_seq(y=input.to(device), sr=32000, n_fft=512, hop_length=384, device=device)
-            spectrogram = torch.unsqueeze(spectrogram, dim=1)
-            validation_output = model(spectrogram.to(device))
+            spectrogram = preprocessing_pipeline(input.to(device), use_augmentations=False)
+            validation_output = model(spectrogram)
             predictions = torch.max(validation_output, dim=1)[1].data.squeeze()
             predicted_labels = torch.cat((predicted_labels, predictions))
             true_labels = torch.cat((true_labels, labels.to(device)))

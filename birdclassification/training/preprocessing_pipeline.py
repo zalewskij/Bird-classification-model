@@ -2,20 +2,17 @@ import torch
 import random
 from birdclassification.preprocessing.augmentations import InvertPolarity, AddWhiteNoise, PitchShifting, RandomGain, \
     TimeShift, AddBackgroundNoise, BandPass
-from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram
+from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram, generate_mel_spectrogram_seq
 from birdclassification.preprocessing.utils import get_loudest_index, cut_around_index, get_thresholded_fragments
-import pickle
 from birdclassification.preprocessing.utils import mix_down, right_pad
-from birdclassification.preprocessing.utils import timer
 from noisereduce.torchgate import TorchGate as TG
-import random
 
 
 class PreprocessingPipeline(torch.nn.Module):
     """
         Pipeline for preprocessing the recordings
     """
-    def __init__(self, noises_df=None, noises_dir='', random_fragment=False):
+    def __init__(self, noises_df=None, noises_dir='', random_fragment=False, device='cpu'):
         """
         Parameters
         ----------
@@ -54,6 +51,8 @@ class PreprocessingPipeline(torch.nn.Module):
         #     AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], df=noises_df, noises_dir=noises_dir),
         #     PitchShifting(sr=self.parameters['sr'], min_semitones=self.parameters['pitch_shift_min'], max_semitones=self.parameters['pitch_shift_max'])]
 
+        self.device = device
+
         self.augmentations = []
         self.probabilities = [0.5 for i in range(len(self.augmentations))]
         self.bandpass = BandPass(sr=self.parameters['sr'], central_freq=self.parameters['central_freq'])
@@ -66,31 +65,7 @@ class PreprocessingPipeline(torch.nn.Module):
         self.mix_down = mix_down
         self.right_pad = right_pad
 
-    def save(self, filepath):
-        """
-        Parameters
-        ----------
-        filepath
-            Path to save the class instance
-        """
-        file = open(filepath, 'wb')
-        pickle.dump(self, file)
-        file.close()
-
-    def load(self, filepath):
-        """
-        Parameters
-        ----------
-        filepath
-            Path from where to load the class instance
-        """
-        file = open(filepath, 'rb')
-        element = pickle.load(file)
-        file.close()
-        return element
-
-    # @timer
-    def forward(self, waveform: torch.Tensor) -> torch.Tensor:
+    def forward(self, waveform: torch.Tensor, use_augmentations = True) -> torch.Tensor:
         """
         Parameters
         ----------
@@ -102,23 +77,14 @@ class PreprocessingPipeline(torch.nn.Module):
         audio: torch.Tensor
             Preprocessed audio in form of a spectrogram
         """
-        waveform = self.mix_down(waveform)
-        waveform = self.right_pad(waveform, minimal_length=self.parameters['sample_length'] * self.parameters['sr'])
 
-        if self.parameters['random_fragment']:
-            #select random 3 second chunk from the loudest ones
-            waveform = random.choice(self.get_thresholded_fragments(waveform, self.parameters['sr'], self.parameters['n_fft'],
-                                            self.parameters['hop_length'], sample_length=self.parameters['sample_length'], threshold=0.7))
-        else:
-            # select loudest 3 second chunk
-            peak = get_loudest_index(waveform, self.parameters['n_fft'], self.parameters['hop_length'])
-            waveform = cut_around_index(waveform, peak, self.parameters['sr'] * self.parameters['sample_length'])
-
-        # augmentations
-        if self.augmentations:
+        if self.augmentations and use_augmentations:
             n = random.randint(0, min(3, len(self.augmentations)))
             selected = random.choices(list(self.augmentations), weights=self.probabilities, k=n)
             aug = torch.nn.Sequential(*selected)
             waveform = aug(waveform)
 
-        return waveform
+        spectrogram = generate_mel_spectrogram_seq(y=waveform, sr=32000, n_fft=512, hop_length=384, device=self.device)
+        spectrogram = torch.unsqueeze(spectrogram, dim=1)
+
+        return spectrogram

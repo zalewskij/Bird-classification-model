@@ -3,7 +3,7 @@ import torch
 from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram_seq
 
 
-def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn, model, device, start_time):
+def train_one_epoch(epoch_index, preprocessing_pipeline, tb_writer, training_loader, optimizer, loss_fn, model, device, start_time):
     """
     Function to train model in epoch
 
@@ -28,16 +28,13 @@ def train_one_epoch(epoch_index, tb_writer, training_loader, optimizer, loss_fn,
 
     for i, data in enumerate(training_loader):
         inputs, labels = data
-
-        inputs = generate_mel_spectrogram_seq(y=inputs.to(device), sr=32000, n_fft=512, hop_length=384, device=device)
-        inputs = torch.unsqueeze(inputs, dim=1)
-        #labels = labels.to(torch.int64)
+        inputs = preprocessing_pipeline(inputs.to(device))
 
         # Zero your gradients for every batch!
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = model(inputs.to(device))
+        outputs = model(inputs)
 
         # Compute the loss and its gradients
         loss = loss_fn(outputs.to(device), labels.long().to(device))

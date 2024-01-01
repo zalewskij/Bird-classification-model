@@ -1,6 +1,6 @@
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import Dataset
-from birdclassification.training.preprocessing_pipeline import PreprocessingPipeline
+from birdclassification.training.dataset_pipeline import DatasetPipeline
 import torchaudio
 from birdclassification.preprocessing.utils import timer
 from birdclassification.visualization.plots import plot_torch_spectrogram, plot_torch_waveform
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class Recordings30(Dataset):
-    def __init__(self, df, recording_dir, noises_df=None, noises_dir='', sample_rate=32000, device="cpu", random_fragment=False):
+    def __init__(self, df, recording_dir, device="cpu", random_fragment=False):
         """
         Parameters
         ----------
@@ -20,21 +20,18 @@ class Recordings30(Dataset):
             dataframe of noises
         noises_dir: str
             filepath to the directory with noises
-        sample_rate: int
         device: str
             cpu or cuda depending on the used device
         """
         df['filepath'] = df.apply(lambda x: Path(recording_dir, x['Latin name'], f"{str(x['id'])}.mp3"), axis=1)
-        # df['filepath'] = df.apply(lambda x: f"{recording_dir}{x['Latin name']}/{str(x['id'])}.mp3", axis=1)
         le = LabelEncoder()
         df['label'] = le.fit_transform(df['Latin name'])
 
-        self.sample_rate = sample_rate
         self.filepath = df['filepath'].to_numpy()
         self.label = df['label'].to_numpy()
         self.device = device
         self.recording_dir = recording_dir
-        self.preprocessing_pipeline = PreprocessingPipeline(noises_df, noises_dir, random_fragment=random_fragment).to(device)
+        self.dataset_pipeline = DatasetPipeline(random_fragment=random_fragment).to(device)
         self.le_name_mapping = dict(zip(le.transform(le.classes_), le.classes_))
 
     def __len__(self):
@@ -61,7 +58,7 @@ class Recordings30(Dataset):
         """
         audio, sr = torchaudio.load(self.filepath[idx])
         label = self.label[idx]
-        audio = self.preprocessing_pipeline(audio)
+        audio = self.dataset_pipeline(audio)
         return audio, label
 
     def get_filepath(self, idx):

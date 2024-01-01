@@ -1,3 +1,4 @@
+from birdclassification.training.preprocessing_pipeline import PreprocessingPipeline
 import torch
 from torch import nn
 from torchvision.models import resnet34
@@ -21,29 +22,29 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
-RECORDINGS_DIR = Path('/Users/zosia/Desktop/recordings_30/')
-NOISES_DIR = Path('/Users/zosia/Desktop/NotBirds/')
+RECORDINGS_DIR = Path('/mnt/d/recordings_30')
+NOISES_DIR = Path('') # Path('D:\\JAcek\\noises_dir')
 WRITER_DIR = Path(__file__).resolve().parent / "logs"
 MODEL_PATH = Path(__file__).resolve().parent.parent / "saved_models" / "resnet_1.pt"
 
 SAMPLE_RATE = 32000
 BATCH_SIZE = 32
-NUM_WORKERS = 0
+NUM_WORKERS = 8
 
 LEARNING_RATE = 0.0001
 EPOCHS = 5
 
 df = filter_recordings_30(BASE_PATH / "data" / "xeno_canto_recordings.csv",
                           BASE_PATH / "data" / "bird-list-extended.csv")
-noises_df = ''
+noises_df = None
 
 train_df, test_val_df = train_test_split(df, stratify=df['Latin name'], test_size=0.2, random_state=SEED)
 val_df, test_df = train_test_split(test_val_df, stratify=test_val_df['Latin name'], test_size=0.5,
                                    random_state=SEED)
 
-train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, device=DEVICE)
-val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, device=DEVICE)
-test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, device=DEVICE)
+train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, device=DEVICE)
+val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, device=DEVICE)
+test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, device=DEVICE)
 
 train_dl = DataLoader(train_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 val_dl = DataLoader(val_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
@@ -55,6 +56,7 @@ resnet.fc = nn.Linear(512, 50)
 resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 resnet = resnet.to(DEVICE)
 
+preprocessing_pipeline = PreprocessingPipeline(device=DEVICE, random_fragment=True, noises_dir=NOISES_DIR, noises_df=noises_df).to(DEVICE)
 
 optimizer = torch.optim.Adam(resnet.parameters(), lr=LEARNING_RATE)
 loss_fn = nn.CrossEntropyLoss()
@@ -87,7 +89,7 @@ for epoch in range(EPOCHS):
 
     # Make sure gradient tracking is on, and do a pass over the data
     resnet.train()
-    avg_loss = train_one_epoch(epoch_number, writer, train_dl, optimizer, loss_fn, resnet, DEVICE, start_time)
+    avg_loss = train_one_epoch(epoch_number, preprocessing_pipeline, writer, train_dl, optimizer, loss_fn, resnet, DEVICE, start_time)
 
     # Set the model to evaluation mode, disabling dropout and using population
     # statistics for batch normalization.
@@ -98,8 +100,7 @@ for epoch in range(EPOCHS):
     with torch.no_grad():
         for i, vdata in enumerate(val_dl):
             vinputs, vlabels = vdata
-            vinputs = generate_mel_spectrogram_seq(y=vinputs.to(DEVICE), sr=32000, n_fft=512, hop_length=384, device=DEVICE)
-            vinputs = torch.unsqueeze(vinputs, dim=1).to(DEVICE)
+            vinputs = preprocessing_pipeline(vinputs.to(DEVICE), use_augmentations=False)
             voutputs = resnet(vinputs.to(DEVICE, dtype=torch.float32))
             vloss = loss_fn(voutputs, vlabels.long().to(DEVICE))
             running_vloss += vloss
@@ -108,8 +109,7 @@ for epoch in range(EPOCHS):
     print("#############################################################")
     print("Epoch results:")
     print(f'Loss train {avg_loss} valid loss: {avg_vloss}')
-    validation_precision_score = calculate_metric(resnet, val_dl, device=DEVICE,
-                                                  metric=lambda x, y: precision_score(x, y, average='macro'))
+    validation_precision_score = calculate_metric(resnet, val_dl, device=DEVICE, preprocessing_pipeline=preprocessing_pipeline, metric=lambda x, y: precision_score(x, y, average='macro'))
     print(f'Validation macro avarage precision: {validation_precision_score}')
     print(f'Epoch execution time {time() - epoch_start_time}')
     print("#############################################################\n\n")
@@ -127,10 +127,9 @@ for epoch in range(EPOCHS):
     writer.flush()
 
     # Track best performance, and save the model's state
-    if avg_vloss < best_vloss:
-        best_vloss = avg_vloss
-        model_path = f'model_{TIMESTAMP}_{epoch_number}'
-        torch.save(resnet.state_dict(), model_path)
+    best_vloss = avg_vloss
+    model_path = f'model_{TIMESTAMP}_{epoch_number}'
+    torch.save(resnet.state_dict(), MODEL_PATH.parent / model_path)
 
     epoch_number += 1
 

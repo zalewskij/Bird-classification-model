@@ -1,4 +1,5 @@
 from birdclassification.preprocessing.spectrogram import generate_mel_spectrogram_seq
+from birdclassification.training.preprocessing_pipeline import PreprocessingPipeline
 import pandas as pd
 from birdclassification.preprocessing.filtering import filter_recordings_30
 from birdclassification.training.dataset import Recordings30
@@ -8,6 +9,7 @@ from birdclassification.training.validation_metrics import calculate_metric
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from noisereduce.torchgate import TorchGate as TG
 from torchsummary import summary
 from sklearn.model_selection import train_test_split
 from sklearn.utils import class_weight
@@ -25,10 +27,9 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
 RECORDINGS_DIR = Path('/mnt/d/recordings_30') # Path("D:\\JAcek\\recordings_30")
-# RECORDINGS_DIR = Path('/media/jacek/E753-A120/recordings_30')
 NOISES_DIR = Path('') # Path('D:\\JAcek\\noises_dir')
 WRITER_DIR = Path(__file__).resolve().parent / "logs"
-MODEL_PATH = Path(__file__).resolve().parent / "saved_models" / "cnn_1.pt"
+MODEL_PATH = Path(__file__).resolve().parent.parent / "saved_models" / "cnn_1.pt"
 
 SAMPLE_RATE = 32000
 BATCH_SIZE = 32
@@ -43,9 +44,9 @@ noises_df = None
 train_df, test_val_df = train_test_split(df, stratify=df['Latin name'], test_size=0.2, random_state = SEED)
 val_df, test_df = train_test_split(test_val_df, stratify=test_val_df['Latin name'], test_size=0.5, random_state = SEED)
 
-train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate=SAMPLE_RATE, device = DEVICE, random_fragment=True)
-val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR, sample_rate = 32000, device = DEVICE)
-test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, noises_df=noises_df, noises_dir=NOISES_DIR,sample_rate = 32000,device = DEVICE)
+train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, device = DEVICE, random_fragment=True)
+val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, device = DEVICE)
+test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, device = DEVICE)
 
 train_dl  = DataLoader(train_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 val_dl  = DataLoader(val_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
@@ -62,6 +63,8 @@ cnn = CNNNetwork().to(DEVICE)
 summary(cnn, (1, 64, 251)) 
 
 cnn.eval()
+
+preprocessing_pipeline = PreprocessingPipeline(device=DEVICE, random_fragment=True, noises_dir=NOISES_DIR, noises_df=noises_df).to(DEVICE)
 
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(cnn.parameters(),
@@ -96,7 +99,7 @@ for epoch in range(EPOCHS):
     
     # Make sure gradient tracking is on, and do a pass over the data
     cnn.train(True)
-    avg_loss = train_one_epoch(epoch_number, writer, train_dl, optimizer, loss_fn, cnn, DEVICE, start_time)
+    avg_loss = train_one_epoch(epoch_number, preprocessing_pipeline, writer, train_dl, optimizer, loss_fn, cnn, DEVICE, start_time)
 
     # Set the model to evaluation mode, disabling dropout and using population 
     # statistics for batch normalization.
@@ -107,8 +110,7 @@ for epoch in range(EPOCHS):
     with torch.no_grad():
         for i, vdata in enumerate(val_dl):
             vinputs, vlabels = vdata
-            vinputs = generate_mel_spectrogram_seq(y=vinputs.to(DEVICE), sr=32000, n_fft=512, hop_length=384, device=DEVICE)
-            vinputs = torch.unsqueeze(vinputs, dim=1)
+            vinputs = preprocessing_pipeline(vinputs.to(DEVICE), use_augmentations=False)
             voutputs = cnn(vinputs)
             vloss = loss_fn(voutputs, vlabels.to(DEVICE))
             running_vloss += vloss
@@ -117,7 +119,7 @@ for epoch in range(EPOCHS):
     print("#############################################################")
     print("Epoch results:")
     print(f'Loss train {avg_loss} valid loss: {avg_vloss}')
-    validation_precision_score = calculate_metric(cnn, val_dl, device=DEVICE, metric=lambda x, y: precision_score(x, y, average='macro'))
+    validation_precision_score = calculate_metric(cnn, val_dl, preprocessing_pipeline=preprocessing_pipeline, device=DEVICE, metric=lambda x, y: precision_score(x, y, average='macro'))
     print(f'Validation macro avarage precision: {validation_precision_score}')
     print(f'Epoch execution time {time() - epoch_start_time}')
     print("#############################################################\n\n")
@@ -136,7 +138,6 @@ for epoch in range(EPOCHS):
     writer.flush()
     
     # Track best performance, and save the model's state
-    # if avg_vloss < best_vloss:
     best_vloss = avg_vloss
     model_path = f'model_{TIMESTAMP}_{epoch_number}'
     torch.save(cnn.state_dict(), MODEL_PATH.parent / model_path)
