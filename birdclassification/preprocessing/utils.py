@@ -6,6 +6,9 @@ import librosa
 from scipy.signal import hilbert
 from birdclassification.visualization.plots import plot_selected_waveform
 from time import time
+import pandas as pd
+from imblearn.over_sampling import RandomOverSampler
+import torch
 
 
 def timer(func):
@@ -300,3 +303,38 @@ def right_pad(waveform, minimal_length):
         last_dim_padding = (0, missing_samples)
         waveform = torch.nn.functional.pad(waveform, last_dim_padding)
     return waveform
+
+
+def oversample_dataframe(df, minimum_number_fo_samples, mapping, seed):
+    """
+
+    Parameters
+    ----------
+
+    df: pd.DataFrame
+        dataframe to oversample
+    minimum_number_fo_samples: int
+        the smallest value of recordings in dataframe after resampling
+
+    mapping: dict
+        The dictionary mapping integer to its string, latin class name
+
+    seed: int/str
+        A seed for RandomOverSampler class
+    """
+
+    dist = df.groupby('Latin name').count()
+    dist_dict = {}
+
+    for i in range(len(dist.index)):
+        dist_dict[mapping[i]] = max(dist.iloc[i, 0], minimum_number_fo_samples)
+
+    X = df.drop('Latin name', axis=1).values
+    y = df['Latin name'].values
+
+    ros = RandomOverSampler(random_state=seed, sampling_strategy=dist_dict)
+    X_resampled, y_resampled = ros.fit_resample(X, y)
+
+    df_r = pd.DataFrame(X_resampled).assign(label=y_resampled)
+    df_r.columns = df.columns
+    return df_r
