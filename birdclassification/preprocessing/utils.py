@@ -8,6 +8,7 @@ from birdclassification.visualization.plots import plot_selected_waveform
 from time import time
 import pandas as pd
 from imblearn.over_sampling import RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
 import torch
 
 
@@ -305,7 +306,7 @@ def right_pad(waveform, minimal_length):
     return waveform
 
 
-def oversample_dataframe(df, minimum_number_fo_samples, mapping, seed):
+def oversample_dataframe(df, minimum_number_of_samples, mapping, seed):
     """
 
     Parameters
@@ -313,7 +314,7 @@ def oversample_dataframe(df, minimum_number_fo_samples, mapping, seed):
 
     df: pd.DataFrame
         dataframe to oversample
-    minimum_number_fo_samples: int
+    minimum_number_of_samples: int
         the smallest value of recordings in dataframe after resampling
 
     mapping: dict
@@ -327,12 +328,47 @@ def oversample_dataframe(df, minimum_number_fo_samples, mapping, seed):
     dist_dict = {}
 
     for i in range(len(dist.index)):
-        dist_dict[mapping[i]] = max(dist.iloc[i, 0], minimum_number_fo_samples)
+        dist_dict[mapping[i]] = max(dist.iloc[i, 0], minimum_number_of_samples)
 
     X = df.drop('Latin name', axis=1).values
     y = df['Latin name'].values
 
     ros = RandomOverSampler(random_state=seed, sampling_strategy=dist_dict)
+    X_resampled, y_resampled = ros.fit_resample(X, y)
+
+    df_r = pd.DataFrame(X_resampled).assign(label=y_resampled)
+    df_r.columns = df.columns
+    return df_r
+
+
+def undersample_dataframe(df, maximum_number_of_samples, mapping, seed):
+    """
+
+    Parameters
+    ----------
+
+    df: pd.DataFrame
+        dataframe to oversample
+    maximum_number_of_samples: int
+        the largest value of recordings in dataframe after resampling
+
+    mapping: dict
+        The dictionary mapping integer to its string, latin class name
+
+    seed: int/str
+        A seed for RandomUnderSampler class
+    """
+
+    dist = df.groupby('Latin name').count()
+    dist_dict = {}
+
+    for i in range(len(dist.index)):
+        dist_dict[mapping[i]] = min(dist.iloc[i, 0], maximum_number_of_samples)
+
+    X = df.drop('Latin name', axis=1).values
+    y = df['Latin name'].values
+
+    ros = RandomUnderSampler(random_state=seed, sampling_strategy=dist_dict)
     X_resampled, y_resampled = ros.fit_resample(X, y)
 
     df_r = pd.DataFrame(X_resampled).assign(label=y_resampled)
