@@ -95,7 +95,6 @@ def filter_recordings_287(filepath_recordings='../data/xeno_canto_recordings.csv
 
     df = pd.read_csv(filepath_bird_list, delimiter=";")
     species_287 = df[df["Chosen"] == on_list]
-    print(len(species_287.index))
     recordings = pd.read_csv(filepath_recordings)
     recordings['Latin name'] = recordings.gen + " " + recordings.sp
     recordings_287 = recordings[recordings["Latin name"].isin(species_287["Latin name"])].reset_index()
