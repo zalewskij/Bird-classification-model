@@ -43,18 +43,18 @@ class PreprocessingPipeline(torch.nn.Module):
             'random_fragment': random_fragment 
         }
 
-        # self.augmentations = [
-        #     InvertPolarity().to(device),
-        #     AddWhiteNoise(min_factor=self.parameters['white_noise_min'], max_factor=self.parameters['white_noise_max'], device=device).to(device),
-        #     RandomGain(min_factor=self.parameters['random_gain_min'], max_factor=self.parameters['random_gain_max']).to(device),
-        #     TimeShift(min_factor=self.parameters['time_shift_min'], max_factor=self.parameters['time_shift_max']).to(device),
-        #     AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], df=noises_df, noises_dir=noises_dir).to(device),
-        #     # PitchShifting(sr=self.parameters['sr'], hop_length=self.parameters['hop_length'], n_fft=self.parameters['n_fft'], min_semitones=self.parameters['pitch_shift_min'], max_semitones=self.parameters['pitch_shift_max'])
-        # ]
+        self.augmentations = [
+            InvertPolarity().to(device),
+            AddWhiteNoise(min_factor=self.parameters['white_noise_min'], max_factor=self.parameters['white_noise_max'], device=device).to(device),
+            RandomGain(min_factor=self.parameters['random_gain_min'], max_factor=self.parameters['random_gain_max']).to(device),
+            TimeShift(min_factor=self.parameters['time_shift_min'], max_factor=self.parameters['time_shift_max']).to(device),
+            #AddBackgroundNoise(min_factor=self.parameters['add_background_min'], max_factor=self.parameters['add_background_max'], df=noises_df, noises_dir=noises_dir).to(device),
+            # PitchShifting(sr=self.parameters['sr'], hop_length=self.parameters['hop_length'], n_fft=self.parameters['n_fft'], min_semitones=self.parameters['pitch_shift_min'], max_semitones=self.parameters['pitch_shift_max'])
+        ]
 
         self.device = device
 
-        self.augmentations = []
+        #self.augmentations = []
         self.probabilities = [0.5 for i in range(len(self.augmentations))]
         self.bandpass = BandPass(sr=self.parameters['sr'], central_freq=self.parameters['central_freq'])
         self.noise_reduction = TG(sr=self.parameters['sr'], nonstationary=False)

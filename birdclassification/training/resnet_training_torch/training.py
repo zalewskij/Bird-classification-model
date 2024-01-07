@@ -2,7 +2,7 @@ from birdclassification.training.preprocessing_pipeline import PreprocessingPipe
 import torch
 from torch import nn
 from torchvision.models import resnet34
-from birdclassification.preprocessing.filtering import filter_recordings_30
+from birdclassification.preprocessing.filtering import filter_recordings_287
 from birdclassification.preprocessing.utils import oversample_dataframe, undersample_dataframe
 from birdclassification.training.dataset import Recordings30
 from birdclassification.training.training_utils import train_one_epoch
@@ -22,17 +22,17 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
-RECORDINGS_DIR = Path('/mnt/d/recordings_30')
+RECORDINGS_DIR = Path('/mnt/d/JAcek/recordings_287')
 NOISES_DIR = Path('') # Path('D:\\JAcek\\noises_dir')
 WRITER_DIR = Path(__file__).resolve().parent / "logs"
 MODEL_PATH = Path(__file__).resolve().parent.parent / "saved_models" / "resnet_1.pt"
 
 SAMPLE_RATE = 32000
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 NUM_WORKERS = 8
 
 LEARNING_RATE = 0.0001
-EPOCHS = 5
+EPOCHS = 10
 MAPPING = {0: 'Acanthis cabaret', 1: 'Acanthis flammea', 2: 'Accipiter gentilis', 3: 'Accipiter nisus', 4: 'Acrocephalus arundinaceus',
            5: 'Acrocephalus dumetorum', 6: 'Acrocephalus paludicola', 7: 'Acrocephalus palustris', 8: 'Acrocephalus schoenobaenus',
            9: 'Acrocephalus scirpaceus', 10: 'Actitis hypoleucos', 11: 'Aegithalos caudatus', 12: 'Aegolius funereus',
@@ -94,7 +94,7 @@ MAPPING = {0: 'Acanthis cabaret', 1: 'Acanthis flammea', 2: 'Accipiter gentilis'
 
 
 
-df = filter_recordings_30(BASE_PATH / "data" / "xeno_canto_recordings.csv",
+df = filter_recordings_287(BASE_PATH / "data" / "xeno_canto_recordings.csv",
                           BASE_PATH / "data" / "bird-list-extended.csv")
 noises_df = None
 
@@ -106,7 +106,7 @@ train_df = oversample_dataframe(train_df, minimum_number_of_samples=1000, mappin
 train_df = undersample_dataframe(train_df, maximum_number_of_samples=3000, mapping=MAPPING, seed=SEED)
 train_df = train_df.sample(frac=1.0, random_state=SEED)
 
-train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, device=DEVICE)
+train_ds = Recordings30(train_df, recording_dir=RECORDINGS_DIR, device=DEVICE, random_fragment=True)
 val_ds = Recordings30(val_df, recording_dir=RECORDINGS_DIR, device=DEVICE)
 test_ds = Recordings30(test_df, recording_dir=RECORDINGS_DIR, device=DEVICE)
 
@@ -116,7 +116,7 @@ test_dl = DataLoader(test_ds, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 
 
 resnet = resnet34(pretrained=True)
-resnet.fc = nn.Linear(512, 50)
+resnet.fc = nn.Linear(512, 287)
 resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 resnet = resnet.to(DEVICE)
 
