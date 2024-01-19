@@ -3,6 +3,10 @@ import requests
 import pandas as pd
 from requests.exceptions import HTTPError
 
+'''
+Creates full list of xeno canto recordings for chosen species
+'''
+
 birds_list = pd.read_csv('../data/bird_species_in_poland_31.12.2022.csv')
 df = pd.DataFrame(columns=['id', 'gen', 'sp', 'ssp',
                            'group', 'en', 'rec', 'cnt',

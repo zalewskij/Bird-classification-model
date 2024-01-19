@@ -2,6 +2,10 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pydub import AudioSegment
 
+'''
+SCript converting files to OGG format and resampling to 32 kHz
+'''
+
 DIR = '/media/jacek/E753-A120/xeno-canto-splitted'
 EXTENSION = ".ogg"
 OUTPUTDIR = '/media/jacek/E753-A120/xeno-canto-splitted-converted'

@@ -2,15 +2,17 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
+'''
+Script collecting list of bird species in Poland
+'''
+
 df = pd.DataFrame(columns=['Latin name',
                            'Polish name',
                            'Category',
                            'Status'
                            ])
 
-# parse a list of bird species in Poland
 URL = 'https://komisjafaunistyczna.pl/lista/'
-# soup = BeautifulSoup(requests.get(URL).content, features="lxml")
 html = requests.get('https://komisjafaunistyczna.pl/lista/', verify=False)
 soup = BeautifulSoup(html.text, "html.parser")
 

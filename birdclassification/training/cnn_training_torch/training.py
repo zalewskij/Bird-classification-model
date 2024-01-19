@@ -21,7 +21,6 @@ TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 123
 BASE_PATH = Path(__file__).resolve().parent.parent.parent.parent
-#RECORDINGS_DIR = Path('/mnt/d/recordings_30')
 RECORDINGS_DIR = Path("/media/jacek/E753-A120/recordings_287")
 NOISES_DIR = Path('/media/jacek/E753-A120/NotBirds')
 WRITER_DIR = Path(__file__).resolve().parent / "logs"
@@ -142,17 +141,13 @@ start_time = time()
 for epoch in range(EPOCHS):
     print('EPOCH {}:'.format(epoch_number + 1))
     epoch_start_time = time()
-    
-    # Make sure gradient tracking is on, and do a pass over the data
+
     cnn.train(True)
     avg_loss = train_one_epoch(epoch_number, preprocessing_pipeline, writer, train_dl, optimizer, loss_fn, cnn, DEVICE, start_time)
 
-    # Set the model to evaluation mode, disabling dropout and using population 
-    # statistics for batch normalization.
     cnn.eval()
     running_vloss = 0.0
 
-    # Disable gradient computation and reduce memory consumption.
     with torch.no_grad():
         for i, vdata in enumerate(val_dl):
             vinputs, vlabels = vdata
@@ -169,9 +164,7 @@ for epoch in range(EPOCHS):
     print(f'Validation macro avarage precision: {validation_precision_score}')
     print(f'Epoch execution time {time() - epoch_start_time}')
     print("#############################################################\n\n")
-    
-    # Log the running loss averaged per batch
-    # for both training and validation
+
     writer.add_scalars('Training vs. Validation Loss',
                     { 'Training' : avg_loss, 'Validation' : avg_vloss },
                     epoch_number + 1)
@@ -182,8 +175,7 @@ for epoch in range(EPOCHS):
                     epoch_number + 1)
     
     writer.flush()
-    
-    # Track best performance, and save the model's state
+
     best_vloss = avg_vloss
     model_path = f'model_{TIMESTAMP}_{epoch_number}'
     torch.save(cnn.state_dict(), MODEL_PATH.parent / model_path)

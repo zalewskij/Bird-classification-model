@@ -226,7 +226,6 @@ class TimeShift(torch.nn.Module):
         return waveform
 
 
-# FILTERING
 class BandPass(torch.nn.Module):
     """
     BandPass biquad filter
@@ -262,44 +261,3 @@ class BandPass(torch.nn.Module):
         """
         waveform = bandpass_biquad(waveform, self.sr, self.central_freq, self.Q)
         return waveform
-
-
-# Currently NOT used
-class RandomChunk(torch.nn.Module):
-    """
-    Obtains a random part of the signal
-    """
-
-    def __init__(self, sr, min_factor, max_factor):
-        """
-        Parameters
-        ----------
-        sr: float
-            Sampling rate of the signal
-        min_factor : float
-            Lower-bound for chunk size
-        max_factor : float
-            Upper-bound for chunk size
-        """
-        super().__init__()
-        self.sr = sr
-        self.chunk_size = random.uniform(min_factor, max_factor)
-
-    def forward(self, waveform: torch.Tensor):
-        """
-        Parameters
-        ----------
-        waveform: torch.Tensor
-            Sound signal
-
-        Returns
-        ----------
-        torch.Tensor
-            Random part of the signal
-        """
-        seconds = int(self.chunk_size * waveform.size()[1] / self.sr)
-        seconds *= self.sr
-        start = random.randint(0, waveform.size()[1] - seconds)
-        signal = waveform[:, start: start + seconds]
-        print(waveform.shape)
-        return signal

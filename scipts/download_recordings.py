@@ -3,6 +3,10 @@ import numpy as np
 import requests
 import time
 
+'''
+Script downloading data from xeno canto
+'''
+
 df = pd.read_csv('../data/xeno_canto_recordings.csv')
 df = df[['id', 'file']]
 

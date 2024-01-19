@@ -60,7 +60,7 @@ class CNNNetwork(nn.Module):
 
         self.flatten = nn.Flatten()
         self.linear = nn.Linear(
-            21760, 30
+            21760, 287
         )
 
     def forward(self, input_data):
